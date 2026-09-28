@@ -1,0 +1,26 @@
+HSET fixture2030:session:S-DEMO-001 session_id S-DEMO-001 user_id U0001 created_at "2030-06-08T20:00:01Z" last_activity "2030-06-08T20:00:01Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-001 1800
+HSET fixture2030:session:S-DEMO-002 session_id S-DEMO-002 user_id U0002 created_at "2030-06-08T20:00:02Z" last_activity "2030-06-08T20:00:02Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-002 1800
+HSET fixture2030:session:S-DEMO-003 session_id S-DEMO-003 user_id U0003 created_at "2030-06-08T20:00:03Z" last_activity "2030-06-08T20:00:03Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-003 1800
+HSET fixture2030:session:S-DEMO-004 session_id S-DEMO-004 user_id U0004 created_at "2030-06-08T20:00:04Z" last_activity "2030-06-08T20:00:04Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-004 1800
+HSET fixture2030:session:S-DEMO-005 session_id S-DEMO-005 user_id U0005 created_at "2030-06-08T20:00:05Z" last_activity "2030-06-08T20:00:05Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-005 1800
+HSET fixture2030:session:S-DEMO-006 session_id S-DEMO-006 user_id U0006 created_at "2030-06-08T20:00:06Z" last_activity "2030-06-08T20:00:06Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-006 1800
+HSET fixture2030:session:S-DEMO-007 session_id S-DEMO-007 user_id U0007 created_at "2030-06-08T20:00:07Z" last_activity "2030-06-08T20:00:07Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-007 1800
+HSET fixture2030:session:S-DEMO-008 session_id S-DEMO-008 user_id U0008 created_at "2030-06-08T20:00:08Z" last_activity "2030-06-08T20:00:08Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-008 1800
+HSET fixture2030:session:S-DEMO-009 session_id S-DEMO-009 user_id U0009 created_at "2030-06-08T20:00:09Z" last_activity "2030-06-08T20:00:09Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-009 1800
+HSET fixture2030:session:S-DEMO-010 session_id S-DEMO-010 user_id U0010 created_at "2030-06-08T20:00:10Z" last_activity "2030-06-08T20:00:10Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-010 1800
+HSET fixture2030:session:S-DEMO-011 session_id S-DEMO-011 user_id U0011 created_at "2030-06-08T20:00:11Z" last_activity "2030-06-08T20:00:11Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-011 1800
+HSET fixture2030:session:S-DEMO-012 session_id S-DEMO-012 user_id U0012 created_at "2030-06-08T20:00:12Z" last_activity "2030-06-08T20:00:12Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-DEMO-012 1800
+ZADD fixture2030:ranking:partidos:consultas:2030-06-08 120 P001 95 P002 70 P003 42 P004
+EXPIRE fixture2030:ranking:partidos:consultas:2030-06-08 172800

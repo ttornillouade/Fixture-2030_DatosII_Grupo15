@@ -1,0 +1,58 @@
+[
+  {
+    "id": "E001",
+    "nombre": "Seleccion 001",
+    "pais": "Pais 001",
+    "confederacion": "CONMEBOL",
+    "grupo": "A"
+  },
+  {
+    "id": "E002",
+    "nombre": "Seleccion 002",
+    "pais": "Pais 002",
+    "confederacion": "UEFA",
+    "grupo": "A"
+  },
+  {
+    "id": "E003",
+    "nombre": "Seleccion 003",
+    "pais": "Pais 003",
+    "confederacion": "CAF",
+    "grupo": "A"
+  },
+  {
+    "id": "E004",
+    "nombre": "Seleccion 004",
+    "pais": "Pais 004",
+    "confederacion": "AFC",
+    "grupo": "A"
+  },
+  {
+    "id": "E005",
+    "nombre": "Seleccion 005",
+    "pais": "Pais 005",
+    "confederacion": "CONMEBOL",
+    "grupo": "B"
+  },
+  {
+    "id": "E006",
+    "nombre": "Seleccion 006",
+    "pais": "Pais 006",
+    "confederacion": "UEFA",
+    "grupo": "B"
+  },
+  {
+    "id": "E007",
+    "nombre": "Seleccion 007",
+    "pais": "Pais 007",
+    "confederacion": "CAF",
+    "grupo": "B"
+  },
+  {
+    "id": "E008",
+    "nombre": "Seleccion 008",
+    "pais": "Pais 008",
+    "confederacion": "AFC",
+    "grupo": "B"
+  }
+]

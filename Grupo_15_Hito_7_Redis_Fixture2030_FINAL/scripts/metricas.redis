@@ -1,0 +1,7 @@
+INFO server
+INFO memory
+INFO stats
+DBSIZE
+CONFIG GET maxmemory
+CONFIG GET maxmemory-policy
+SCAN 0 MATCH fixture2030:* COUNT 100

@@ -1,0 +1,5 @@
+DEL fixture2030:ranking:partidos:consultas:2030-06-08:demo
+ZADD fixture2030:ranking:partidos:consultas:2030-06-08:demo 25 P002 18 P003 11 P004
+ZINCRBY fixture2030:ranking:partidos:consultas:2030-06-08:demo 1 P001
+EXPIRE fixture2030:ranking:partidos:consultas:2030-06-08:demo 172800
+ZREVRANGE fixture2030:ranking:partidos:consultas:2030-06-08:demo 0 9 WITHSCORES

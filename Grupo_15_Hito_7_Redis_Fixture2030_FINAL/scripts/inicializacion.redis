@@ -1,0 +1,2 @@
+PING
+HSET fixture2030:meta:hito numero 7 tecnologia Redis session_ttl_seconds 1800 cache_equipo_ttl_seconds 300 ranking_ttl_seconds 172800

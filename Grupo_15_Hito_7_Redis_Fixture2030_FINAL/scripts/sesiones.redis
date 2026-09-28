@@ -1,0 +1,13 @@
+MULTI
+HSET fixture2030:session:S-CRUD-001 session_id S-CRUD-001 user_id U9999 created_at "2030-06-08T21:00:00Z" last_activity "2030-06-08T21:00:00Z" access_status AUTHENTICATED locale es-AR
+EXPIRE fixture2030:session:S-CRUD-001 1800
+EXEC
+HGETALL fixture2030:session:S-CRUD-001
+TTL fixture2030:session:S-CRUD-001
+MULTI
+HSET fixture2030:session:S-CRUD-001 last_activity "2030-06-08T21:10:00Z"
+EXPIRE fixture2030:session:S-CRUD-001 1800
+EXEC
+TTL fixture2030:session:S-CRUD-001
+DEL fixture2030:session:S-CRUD-001
+EXISTS fixture2030:session:S-CRUD-001

@@ -1,0 +1,7 @@
+DEL fixture2030:cache:equipo:E001
+HSET fixture2030:cache:equipo:E001 id E001 nombre "Seleccion 001" pais "Pais 001" confederacion CONMEBOL grupo A
+EXPIRE fixture2030:cache:equipo:E001 300
+HGETALL fixture2030:cache:equipo:E001
+TTL fixture2030:cache:equipo:E001
+DEL fixture2030:cache:equipo:E001
+EXISTS fixture2030:cache:equipo:E001
