@@ -1,0 +1,12 @@
+{
+  "sample_comments": 32,
+  "unique_comment_ids": 32,
+  "sample_partitions": 22,
+  "sample_max_rows_per_partition": 3,
+  "volume_generator_default": 1100000,
+  "bucket_minutes": 5,
+  "shards": 8,
+  "peak_global_wps_assumption": 8000,
+  "single_match_share_assumption": 0.6,
+  "estimated_peak_rows_per_partition": 180000
+}

@@ -1,0 +1,19 @@
+services:
+  cassandra:
+    image: cassandra:latest
+    container_name: fixture2030-cassandra
+    restart: unless-stopped
+
+    ports:
+      - "9042:9042"
+
+    environment:
+      CASSANDRA_CLUSTER_NAME: Fixture2030Local
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_RACK: rack1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+
+    volumes:
+      - ~/docker/data/cassandra:/var/lib/cassandra
+      - ./scripts:/scripts:ro
+      - ./data:/import
