@@ -1,0 +1,30 @@
+{
+ "fecha_utc": "2026-10-04T23:56:01Z",
+ "etiqueta": "rendimiento_lab",
+ "url": "http://localhost:8181",
+ "db": "fixture2030_vivo",
+ "corrida": "lab_2030",
+ "puntos_esperados": 1999014,
+ "precision": "millisecond",
+ "lote": 5000,
+ "hilos": 4,
+ "lotes_ok": 405,
+ "lotes_fallidos": 0,
+ "reintentos": 0,
+ "puntos_enviados": 1999014,
+ "lineas_rechazadas": 0,
+ "puntos_aceptados": 1999014,
+ "segundos_total": 101.756,
+ "segundos_sin_tardios": 100.775,
+ "puntos_por_segundo": 19645.2,
+ "latencia_lote_ms": {
+  "p50": 998.4,
+  "p95": 1025.5,
+  "max": 1138.2
+ },
+ "cliente": {
+  "python": "3.9.6",
+  "so": "macOS-26.5.2-arm64-arm-64bit"
+ },
+ "muestras_error": []
+}
