@@ -1,0 +1,25 @@
+# Hito 9 — Fixture 2030 — Entidades complejas en InterSystems IRIS
+#
+# Durable %SYS: IRIS guarda su configuración, bases de datos y journals en
+# ~/docker/data/iris/iris (ISC_DATA_DIRECTORY), así sobreviven a docker compose down/up.
+#
+# El código (src/*.cls) NO se monta: scripts/cargar_clases.sh lo copia al contenedor con
+# docker cp y lo compila. Así el proyecto funciona aunque esté en Escritorio o Documentos,
+# carpetas que macOS protege y que Docker Desktop no puede montar sin un permiso extra.
+# La primera vez, usar scripts/inicializacion.sh: levanta el servicio, fija la contraseña
+# local y compila las clases. Después alcanza con docker compose up -d.
+
+services:
+  iris:
+    image: intersystems/iris-community:latest-cd
+    container_name: ${IRIS_CONTAINER:-fixture2030-iris}
+    restart: unless-stopped
+    ports:
+      - "${IRIS_PORT_SUPERSERVER:-1972}:1972"     # ODBC/JDBC
+      - "${IRIS_PORT_WEB:-52773}:52773"           # Portal de administración
+    environment:
+      - ISC_DATA_DIRECTORY=/durable/iris
+      - IRIS_PASSWORD=${IRIS_PASSWORD:?Definir IRIS_PASSWORD en .env (cp .env.example .env)}
+    volumes:
+      - ${HOME}/docker/data/iris:/durable
+    command: --check-caps false --ISCAgent false
