@@ -6,7 +6,7 @@ requiere_env
 
 titulo "Persistencia local (Durable %SYS)"
 mkdir -p "$DATA_DIR"
-echo "Montaje: $DATA_DIR -> /durable  (ISC_DATA_DIRECTORY=/durable/iris)"
+echo "Montaje: ~/docker/data/iris -> /durable  (ISC_DATA_DIRECTORY=/durable/iris)"
 
 titulo "docker compose up -d"
 docker compose up -d
