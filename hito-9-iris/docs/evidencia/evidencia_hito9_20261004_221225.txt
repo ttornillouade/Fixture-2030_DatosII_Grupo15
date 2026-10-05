@@ -1,8 +1,8 @@
 EVIDENCIA HITO 9 — FIXTURE 2030 — ENTIDADES COMPLEJAS (InterSystems IRIS)
 
 ========== 0. Ambiente ==========
-Fecha local:  2026-10-04 22:05:37 -03
-Fecha UTC:    2026-10-05T01:05:37Z
+Fecha local:  2026-10-04 22:12:25 -03
+Fecha UTC:    2026-10-05T01:12:25Z
 SO:           Darwin 25.5.0 arm64
 Docker:       29.5.3
 Imagen:       intersystems/iris-community:latest-cd intersystems/iris-community@sha256:cd2ebcab02d1ef80ec155def4418399f353d867162688c36a3705760e750bdaa
@@ -14,8 +14,8 @@ Montaje: ~/docker/data/iris -> /durable  (ISC_DATA_DIRECTORY=/durable/iris)
 
 ========== docker compose up -d ==========
  Container fixture2030-iris Running 
-NAME               IMAGE                                   COMMAND                  SERVICE   CREATED          STATUS          PORTS
-fixture2030-iris   intersystems/iris-community:latest-cd   "/tini -- /iris-main…"   iris      11 seconds ago   Up 10 seconds   0.0.0.0:1972->1972/tcp, [::]:1972->1972/tcp, 0.0.0.0:52773->52773/tcp, [::]:52773->52773/tcp
+NAME               IMAGE                                   COMMAND                  SERVICE   CREATED         STATUS         PORTS
+fixture2030-iris   intersystems/iris-community:latest-cd   "/tini -- /iris-main…"   iris      6 minutes ago   Up 6 minutes   0.0.0.0:1972->1972/tcp, [::]:1972->1972/tcp, 0.0.0.0:52773->52773/tcp, [::]:52773->52773/tcp
 
 ========== Esperando a que IRIS acepte sesiones ==========
 IRIS listo tras 1 intento(s)
@@ -32,7 +32,7 @@ IRIS listo tras 1 intento(s)
 /tmp/fixture/src/Fixture/Tecnico.cls
 
 ========== Contraseña local de IRIS ==========
-Node: 44e366385cc7, Instance: IRIS
+Node: f0d125aeef86, Instance: IRIS
 %SYS>
 %SYS>
 %SYS>
@@ -43,47 +43,47 @@ Usuario Admin: contraseña local aplicada
 
 ========== Carga y compilación (namespace USER) ==========
 
-Node: 44e366385cc7, Instance: IRIS
+Node: f0d125aeef86, Instance: IRIS
 
 USER>
 
-Load of directory started on 10/05/2026 01:05:38
-Loading file /tmp/fixture/src/Fixture/Demo.cls as cls
-Imported class: Fixture.Demo
-Loading file /tmp/fixture/src/Fixture/Arbitro.cls as cls
-Imported class: Fixture.Arbitro
-Loading file /tmp/fixture/src/Fixture/Partido.cls as cls
-Imported class: Fixture.Partido
-Loading file /tmp/fixture/src/Fixture/Persona.cls as cls
-Imported class: Fixture.Persona
+Load of directory started on 10/05/2026 01:12:26
 Loading file /tmp/fixture/src/Fixture/Sede.cls as cls
 Imported class: Fixture.Sede
-Loading file /tmp/fixture/src/Fixture/Equipo.cls as cls
-Imported class: Fixture.Equipo
-Loading file /tmp/fixture/src/Fixture/Jugador.cls as cls
-Imported class: Fixture.Jugador
-Loading file /tmp/fixture/src/Fixture/Evento.cls as cls
-Imported class: Fixture.Evento
 Loading file /tmp/fixture/src/Fixture/Tecnico.cls as cls
 Imported class: Fixture.Tecnico
+Loading file /tmp/fixture/src/Fixture/Persona.cls as cls
+Imported class: Fixture.Persona
+Loading file /tmp/fixture/src/Fixture/Arbitro.cls as cls
+Imported class: Fixture.Arbitro
+Loading file /tmp/fixture/src/Fixture/Jugador.cls as cls
+Imported class: Fixture.Jugador
+Loading file /tmp/fixture/src/Fixture/Demo.cls as cls
+Imported class: Fixture.Demo
+Loading file /tmp/fixture/src/Fixture/Evento.cls as cls
+Imported class: Fixture.Evento
+Loading file /tmp/fixture/src/Fixture/Partido.cls as cls
+Imported class: Fixture.Partido
+Loading file /tmp/fixture/src/Fixture/Equipo.cls as cls
+Imported class: Fixture.Equipo
 Compiling 9 classes
 Compiling class Fixture.Demo
+Compiling class Fixture.Persona
 Compiling class Fixture.Sede
 Compiling class Fixture.Equipo
-Compiling class Fixture.Persona
 Compiling class Fixture.Partido
 Compiling class Fixture.Tecnico
 Compiling class Fixture.Evento
 Compiling class Fixture.Arbitro
 Compiling class Fixture.Jugador
-Compiling table Fixture.Tecnico
 Compiling table Fixture.Persona
 Compiling table Fixture.Sede
 Compiling table Fixture.Arbitro
+Compiling table Fixture.Tecnico
 Compiling table Fixture.Evento
 Compiling table Fixture.Equipo
-Compiling table Fixture.Partido
 Compiling table Fixture.Jugador
+Compiling table Fixture.Partido
 Compiling routine Fixture.Demo.1
 Compiling routine Fixture.Persona.1
 Compiling routine Fixture.Sede.1
@@ -111,7 +111,7 @@ USER>
 
 ========== Versión observada ==========
 
-Node: 44e366385cc7, Instance: IRIS
+Node: f0d125aeef86, Instance: IRIS
 
 USER>
 IRIS for UNIX (Ubuntu Server LTS for ARM64 Containers) 2026.2 (Build 221U) Fri Jun 26 2026 09:59:12 EDT
@@ -158,7 +158,7 @@ USER> set p.ArbitroPrincipal = ##class(Fixture.Demo).NuevoArbitro("A01", "FIFA",
 USER> set sc = p.Iniciar()  write "Iniciar: ", $SYSTEM.Status.IsOK(sc), "  estado del partido: ", p.Estado
 Iniciar: 1  estado del partido: EN_JUEGO
 // Estado del hijo, agregado al padre en memoria:
-USER> set sc = p.RegistrarEvento("GOL", 23, j("E001-J09"), .gol)  write "RegistrarEvento: ", $SYSTEM.Status.IsOK(sc), "  gol.Partido es p: ", (gol.Partido = p)
+USER> set sc = p.RegistrarEvento("GOL", 23, j("E001J09"), .gol)  write "RegistrarEvento: ", $SYSTEM.Status.IsOK(sc), "  gol.Partido es p: ", (gol.Partido = p)
 RegistrarEvento: 1  gol.Partido es p: 1
 USER> write "Ids antes de guardar -> partido: '", p.%Id(), "'  evento: '", gol.%Id(), "'  sede: '", sede.%Id(), "'"
 Ids antes de guardar -> partido: ''  evento: ''  sede: ''
@@ -184,12 +184,12 @@ USER> write "Árbitros en disco: ", ##class(Fixture.Demo).Contar("Fixture.Arbitr
 
 // ===== 5.3 c) Las tablas proyectadas en SQL coinciden con los objetos =====
 USER> write "Objetos -> ", p.Codigo, " | ", p.Sede.Estadio, " | local ", p.EquipoLocal.Codigo, " | ", gol.Minuto, "' ", gol.Tipo, " ", gol.Jugador.Codigo, " | estado ", p.Estado
-Objetos -> P001 | Estadio Centenario | local E001 | 23' GOL E001-J09 | estado EN_JUEGO
+Objetos -> P001 | Estadio Centenario | local E001 | 23' GOL E001J09 | estado EN_JUEGO
 USER> do ##class(Fixture.Demo).Consulta("SELECT p.Codigo, p.Sede->Estadio AS Sede, p.EquipoLocal->Codigo AS EqLocal, e.Minuto, e.Tipo, e.Jugador->Codigo AS Jugador, p.Estado FROM Fixture.Evento e JOIN Fixture.Partido p ON e.Partido = p.ID")
 
 SQL> SELECT p.Codigo, p.Sede->Estadio AS Sede, p.EquipoLocal->Codigo AS EqLocal, e.Minuto, e.Tipo, e.Jugador->Codigo AS Jugador, p.Estado FROM Fixture.Evento e JOIN Fixture.Partido p ON e.Partido = p.ID
 Codigo	Sede	EqLocal	Minuto	Tipo	Jugador	Estado
-P001	Estadio Centenario	E001	23	GOL	E001-J09	EN_JUEGO
+P001	Estadio Centenario	E001	23	GOL	E001J09	EN_JUEGO
 
 1 Rows(s) Affected
 
@@ -201,12 +201,12 @@ P001	Estadio Centenario	E001	23	GOL	E001-J09	EN_JUEGO
 Antes de la carga:
   Sedes=0  Equipos=0  Personas=0 (Jugadores=0, Tecnicos=0, Arbitros=0)  Partidos=0  Eventos=0
   [esperado]   OK        Iniciar P001 (alineaciones de 14 y 14 jugadores)
-  [esperado]   OK        Gol de E001-J09 (23')
-  [esperado]   OK        Amarilla a E002-J04 (31')
-  [esperado]   OK        Gol de E002-J10 (58')
-  [esperado]   OK        Sustitución de E001-J11 (60')
-  [esperado]   OK        Roja a E002-J05 (71')
-  [esperado]   OK        Gol de E001-J10 (77')
+  [esperado]   OK        Gol de E001J09 (23')
+  [esperado]   OK        Amarilla a E002J04 (31')
+  [esperado]   OK        Gol de E002J10 (58')
+  [esperado]   OK        Sustitución de E001J11 (60')
+  [esperado]   OK        Roja a E002J05 (71')
+  [esperado]   OK        Gol de E001J10 (77')
 
 En memoria, sin guardar: partido id='', equipo local id='', eventos en el partido=6
 
@@ -227,17 +227,17 @@ Partido P001 | fase grupos | 2030-06-08 16:00:00 | estado EN_JUEGO
   Asistente 1: Arbitro A02
   Asistente 2: Arbitro A03
   Eventos (partido -> hijos), ordenados por minuto:
-     23' GOL E001-J09 Jugador 09 Seleccion 001 (E001) id=1||1
-     31' TARJETA_AMARILLA E002-J04 Jugador 04 Seleccion 002 (E002) id=1||4
-     58' GOL E002-J10 Jugador 10 Seleccion 002 (E002) id=1||6
-     60' SUSTITUCION E001-J11 Jugador 11 Seleccion 001 (E001) id=1||2
-     71' TARJETA_ROJA E002-J05 Jugador 05 Seleccion 002 (E002) id=1||5
-     77' GOL E001-J10 Jugador 10 Seleccion 001 (E001) id=1||3
+     23' GOL E001J09 Jugador 09 Seleccion 001 (E001) id=1||1
+     31' TARJETA_AMARILLA E002J04 Jugador 04 Seleccion 002 (E002) id=1||4
+     58' GOL E002J10 Jugador 10 Seleccion 002 (E002) id=1||6
+     60' SUSTITUCION E001J11 Jugador 11 Seleccion 001 (E001) id=1||2
+     71' TARJETA_ROJA E002J05 Jugador 05 Seleccion 002 (E002) id=1||5
+     77' GOL E001J10 Jugador 10 Seleccion 001 (E001) id=1||3
   Marcador calculado navegando los eventos: 2-1
 
 Navegación inversa (bidireccional):
   evento 1||1 -> Partido -> Sede: P001 en Estadio Centenario
-  jugador E001-J09 -> Equipo: Seleccion 001 -> Jugadores: 14 -> Tecnico: Tecnico Seleccion 001
+  jugador E001J09 -> Equipo: Seleccion 001 -> Jugadores: 14 -> Tecnico: Tecnico Seleccion 001
   Jugador 09 Seleccion 001: dorsal 9, Mediocampista, 27 años
 
 Herencia y polimorfismo: abrir por la clase base Persona devuelve la subclase real
@@ -272,9 +272,13 @@ Atomicidad: equipo E003 con 11 jugadores, uno sin FechaNacimiento -> no se guard
                -> ERROR #5001: No se pueden registrar eventos en P001: el partido está FINALIZADO
   [esperado]   RECHAZADO Gol en el minuto 88 en P001 FINALIZADO
                -> ERROR #5001: No se pueden registrar eventos en P001: el partido está FINALIZADO
+
+Atomicidad: un mismo %Save lleva un cambio válido (capacidad de la sede) y un evento ilegal
+-> se rechaza el guardado completo y no queda ninguno de los dos cambios
   [esperado]   RECHAZADO Saltear el método: Eventos.Insert + %Save en P001 FINALIZADO
                -> ERROR #5540: SQLCODE: -130 Message: No se pueden agregar eventos: el partido está FINALIZADO
   Eventos de P001 antes: 6 | después: 6
+  Capacidad de S01 en memoria: 1000 | en disco: 60235 (sin cambios)
 
 Las mismas reglas valen por SQL (triggers Foreach = row/object):
   [esperado]   RECHAZADO INSERT de un evento en P001 FINALIZADO (0 filas)
@@ -295,11 +299,11 @@ Segundo árbol: E003 (11 jugadores), E004 (5 jugadores) y P002 = E003 vs E004 PR
   [esperado]   RECHAZADO Árbitro principal repetido como asistente
                -> ERROR #5001: El árbitro principal no puede ser también asistente
   [esperado]   OK        Iniciar P003 = E001 vs E003
-  [esperado]   RECHAZADO Evento de E004-J01, que no juega P003
-               -> ERROR #5001: El jugador E004-J01 no juega en P003
-  [esperado]   OK        Roja a E003-J05 (30')
-  [esperado]   RECHAZADO Gol de E003-J05 (40'), ya expulsado
-               -> ERROR #5001: El jugador E003-J05 fue expulsado en el minuto 30
+  [esperado]   RECHAZADO Evento de E004J01, que no juega P003
+               -> ERROR #5001: El jugador E004J01 no juega en P003
+  [esperado]   OK        Roja a E003J05 (30')
+  [esperado]   RECHAZADO Gol de E003J05 (40'), ya expulsado
+               -> ERROR #5001: El jugador E003J05 fue expulsado en el minuto 30
   [esperado]   OK        Guardar P003 EN_JUEGO con 1 evento
 
 ========== RF8 - Proyección SQL de los objetos ==========
@@ -315,12 +319,12 @@ P003	EN_JUEGO	Estadio Centenario	E001	E003	A06
 
 SQL> SELECT e.ID, e.Minuto, e.Tipo, e.Jugador->Codigo AS Jugador, e.Equipo->Nombre AS Equipo FROM Fixture.Evento e WHERE e.Partido->Codigo = 'P001' ORDER BY e.Minuto
 ID	Minuto	Tipo	Jugador	Equipo
-1||1	23	GOL	E001-J09	Seleccion 001
-1||4	31	TARJETA_AMARILLA	E002-J04	Seleccion 002
-1||6	58	GOL	E002-J10	Seleccion 002
-1||2	60	SUSTITUCION	E001-J11	Seleccion 001
-1||5	71	TARJETA_ROJA	E002-J05	Seleccion 002
-1||3	77	GOL	E001-J10	Seleccion 001
+1||1	23	GOL	E001J09	Seleccion 001
+1||4	31	TARJETA_AMARILLA	E002J04	Seleccion 002
+1||6	58	GOL	E002J10	Seleccion 002
+1||2	60	SUSTITUCION	E001J11	Seleccion 001
+1||5	71	TARJETA_ROJA	E002J05	Seleccion 002
+1||3	77	GOL	E001J10	Seleccion 001
 
 6 Rows(s) Affected
 
@@ -334,11 +338,11 @@ Clase	Personas
 
 SQL> SELECT TOP 5 j.Codigo, j.Apellido, j.Dorsal, %EXTERNAL(j.Posicion) AS Posicion, j.Equipo->Codigo AS Equipo FROM Fixture.Jugador j WHERE j.Equipo->Codigo = 'E001' ORDER BY j.Dorsal
 Codigo	Apellido	Dorsal	Posicion	Equipo
-E001-J01	Seleccion 001	1	Arquero	E001
-E001-J02	Seleccion 001	2	Defensor	E001
-E001-J03	Seleccion 001	3	Defensor	E001
-E001-J04	Seleccion 001	4	Defensor	E001
-E001-J05	Seleccion 001	5	Defensor	E001
+E001J01	Seleccion 001	1	Arquero	E001
+E001J02	Seleccion 001	2	Defensor	E001
+E001J03	Seleccion 001	3	Defensor	E001
+E001J04	Seleccion 001	4	Defensor	E001
+E001J05	Seleccion 001	5	Defensor	E001
 
 5 Rows(s) Affected
 
@@ -374,15 +378,17 @@ SQL también escribe objetos (multimodelo en los dos sentidos):
                -> ERROR #5831: Foreign Key constraint (Fixture.Partido) failed upon DELETE of object in Fixture.Sede: At least 1 object exists which references key %%IDKEY
   [esperado]   RECHAZADO Borrar el árbitro principal de P001
                -> ERROR #5831: Foreign Key constraint (Fixture.Partido) failed upon DELETE of object in Fixture.Arbitro: At least 1 object exists which references key %%IDKEY
+  [esperado]   RECHAZADO Borrar un árbitro asistente de P001 (trigger, la lista no admite ForeignKey)
+               -> ERROR #5540: SQLCODE: -134 Message: El árbitro LIC-A03 es asistente en P001: no se puede borrar
   [esperado]   RECHAZADO Borrar el técnico de E001
                -> ERROR #5831: Foreign Key constraint (Fixture.Equipo) failed upon DELETE of object in Fixture.Tecnico: At least 1 object exists which references key %%IDKEY
-  [esperado]   RECHAZADO Borrar un jugador con eventos registrados (E001-J09)
+  [esperado]   RECHAZADO Borrar un jugador con eventos registrados (E001J09)
                -> ERROR #5831: Foreign Key constraint (Fixture.Evento) failed upon DELETE of object in Fixture.Jugador: At least 1 object exists which references key %%IDKEY
 
 ========== Resumen final ==========
   Sedes=2  Equipos=4  Personas=53 (Jugadores=44, Tecnicos=4, Arbitros=5)  Partidos=1  Eventos=6
 
-Pruebas con resultado esperado: 44 | inesperado: 0
+Pruebas con resultado esperado: 45 | inesperado: 0
 
 ========== 4. Consultas SQL relacionales en el shell SQL (RF8) ==========
 
@@ -470,12 +476,12 @@ Enter <command>, 'q' to quit, '?' for help.
 
 | ID | Partido | Minuto | Tipo | Jugador | Equipo |
 | -- | -- | -- | -- | -- | -- |
-| 1||1 | P001 | 23 | GOL | E001-J09 | E001 |
-| 1||4 | P001 | 31 | TARJETA_AMARILLA | E002-J04 | E002 |
-| 1||6 | P001 | 58 | GOL | E002-J10 | E002 |
-| 1||2 | P001 | 60 | SUSTITUCION | E001-J11 | E001 |
-| 1||5 | P001 | 71 | TARJETA_ROJA | E002-J05 | E002 |
-| 1||3 | P001 | 77 | GOL | E001-J10 | E001 |
+| 1||1 | P001 | 23 | GOL | E001J09 | E001 |
+| 1||4 | P001 | 31 | TARJETA_AMARILLA | E002J04 | E002 |
+| 1||6 | P001 | 58 | GOL | E002J10 | E002 |
+| 1||2 | P001 | 60 | SUSTITUCION | E001J11 | E001 |
+| 1||5 | P001 | 71 | TARJETA_ROJA | E002J05 | E002 |
+| 1||3 | P001 | 77 | GOL | E001J10 | E001 |
 
 6 Rows(s) Affected
 ---------------------------------------------------------------------------
@@ -512,11 +518,11 @@ Enter <command>, 'q' to quit, '?' for help.
 
 | Codigo | Dorsal | Posicion | Equipo | Confederacion |
 | -- | -- | -- | -- | -- |
-| E002-J01 | 1 | Arquero | Seleccion 002 | UEFA |
-| E002-J02 | 2 | Defensor | Seleccion 002 | UEFA |
-| E002-J03 | 3 | Defensor | Seleccion 002 | UEFA |
-| E002-J04 | 4 | Defensor | Seleccion 002 | UEFA |
-| E002-J05 | 5 | Defensor | Seleccion 002 | UEFA |
+| E002J01 | 1 | Arquero | Seleccion 002 | UEFA |
+| E002J02 | 2 | Defensor | Seleccion 002 | UEFA |
+| E002J03 | 3 | Defensor | Seleccion 002 | UEFA |
+| E002J04 | 4 | Defensor | Seleccion 002 | UEFA |
+| E002J05 | 5 | Defensor | Seleccion 002 | UEFA |
 
 5 Rows(s) Affected
 ---------------------------------------------------------------------------
@@ -583,14 +589,14 @@ Después del reinicio (contenedor nuevo, mismos datos y clases compiladas):
 
 ========== RF7 - Navegación por referencias (sin SQL) ==========
 Partido P001 | fase grupos | 2030-06-08 16:00:00 | estado FINALIZADO
-  Sede: Estadio Centenario (Montevideo, URY), capacidad 60235
+  Sede: Estadio Centenario (Montevideo, URY), capacidad 1000
   EquipoLocal: E001 Seleccion 001 (Uruguay) (CONMEBOL, grupo A) | DT Tecnico Seleccion 001 | plantel 14 jugadores
   EquipoVisitante: E002 Seleccion 002 (UEFA, grupo A) | DT Tecnico Seleccion 002 | plantel 14 jugadores
   Árbitro principal: Arbitro A01 (FIFA)
   Asistente 1: Arbitro A02
   Asistente 2: Arbitro A03
   Eventos (partido -> hijos), ordenados por minuto:
-     23' GOL E001-J09 Jugador 09 Seleccion 001 (E001) id=1||1
-     31' TARJETA_AMARILLA E002-J04 Jugador 04 Seleccion 002 (E002) id=1||4
-     58' GOL E002-J10 Jugador 10 Seleccion 002 (E002) id=1||6
-     60' SUSTITUCION E001-J11 Jugador 11 Seleccion 001 (E001) id=1||2
+     23' GOL E001J09 Jugador 09 Seleccion 001 (E001) id=1||1
+     31' TARJETA_AMARILLA E002J04 Jugador 04 Seleccion 002 (E002) id=1||4
+     58' GOL E002J10 Jugador 10 Seleccion 002 (E002) id=1||6
+     60' SUSTITUCION E001J11 Jugador 11 Seleccion 001 (E001) id=1||2
