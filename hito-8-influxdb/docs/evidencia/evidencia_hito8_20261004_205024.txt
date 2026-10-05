@@ -1,0 +1,953 @@
+EVIDENCIA HITO 8 — FIXTURE 2030 — SERIES TEMPORALES (InfluxDB)
+
+========== 0. Ambiente ==========
+Fecha local:  2026-10-04 20:50:24 -03
+Fecha UTC:    2026-10-04T23:50:24Z
+SO:           Darwin 25.5.0 arm64
+CPU:          Apple M5 (10 núcleos)
+RAM:          16 GB
+Docker:       29.5.3
+Recursos VM Docker: CPUs=10 Mem=8321515520 bytes
+Python:       Python 3.9.6
+InfluxDB:     contenedor no disponible
+Imagen:       influxdb:3-core influxdb@sha256:624d69bca6bf6fb174aca5a974e1d96e5c5486994e6ae35bc9b4fe02b9520076
+NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
+
+========== 1. Disponibilidad (RF1) ==========
+
+========== Persistencia local ==========
+Montaje: /Users/tieitix/docker/data/influxdb -> /var/lib/influxdb3
+
+========== docker compose up -d ==========
+ Network hito-8-influxdb_default Creating 
+ Network hito-8-influxdb_default Created 
+ Container fixture2030-influxdb Creating 
+ Container fixture2030-influxdb Created 
+ Container fixture2030-influxdb Starting 
+ Container fixture2030-influxdb Started 
+NAME                   IMAGE             COMMAND                  SERVICE    CREATED        STATUS                  PORTS
+fixture2030-influxdb   influxdb:3-core   "/usr/bin/entrypoint…"   influxdb   1 second ago   Up Less than a second   0.0.0.0:8181->8181/tcp, [::]:8181->8181/tcp
+
+========== Esperando al servidor HTTP (http://localhost:8181) ==========
+Servidor disponible (GET /health -> HTTP 401) tras 3 intento(s)
+
+========== Versión observada (CLI dentro del contenedor) ==========
+influxdb3 InfluxDB 3 Core, 3.12.0, revision 3ba97c65f1ee4e1f127a8266517d4d2083b7ea39
+Imagen influxdb:3-core  id=sha256:624d69bca6bf6fb174aca5a974e1d96e5c5486994e6ae35bc9b4fe02b9520076  creada=2026-10-02T01:29:58.92316879Z
+digest=influxdb@sha256:624d69bca6bf6fb174aca5a974e1d96e5c5486994e6ae35bc9b4fe02b9520076
+
+
+========== Proceso del servidor ==========
+    1 influxdb3 serve --node-id=fixture2030-node0 --object-store=file --data-dir=/var/lib/influxdb3/data
+
+Siguiente paso: bash scripts/autorizacion.sh
+
+========== 2. Autorización local (token enmascarado) ==========
+Creando token de administrador con: influxdb3 create token --admin
+Token creado y guardado en .env (apiv3_****OCULTO********). .env está en .gitignore.
+Verificación OK: el token autentica contra el servidor.
+Siguiente paso: bash scripts/crear_bases.sh
+
+========== 3. Bases y retención (RF10) ==========
+
+========== Bases de datos ==========
+Database "fixture2030_vivo" created successfully
+Base fixture2030_vivo creada con retención 14d
+Database "fixture2030_historico" created successfully
+Base fixture2030_historico creada sin retención (indefinida)
+
+========== influxdb3 show databases ==========
++-----------------------+
+| iox::database         |
++-----------------------+
+| _internal             |
+| fixture2030_historico |
+| fixture2030_vivo      |
++-----------------------+
+
+========== influxdb3 show databases --format json (incluye retención si la versión la informa) ==========
+[{"iox::database":"_internal"},{"iox::database":"fixture2030_historico"},{"iox::database":"fixture2030_vivo"}]
+
+========== 4. Generación reproducible (RF7) ==========
+Corrida:          demo_2030  (/Users/tieitix/Desktop/tatx/Materias/UADE/Ingenieria de Datos/Datos 2/Grupo_15_Hito_7_Redis_Fixture2030_FINAL/hito-8-influxdb/data/generated/demo_2030)
+Partidos:         2  en 1 jornada(s) de hasta 4 simultáneos
+Rango temporal:   2026-10-04T19:45:00.000Z  ->  2026-10-04T22:07:00.000Z
+Precisión:        millisecond (epoch ms)
+  estadisticas_equipo         23,040
+  rendimiento_jugador        253,440
+  eventos_partido              2,668
+  actividad_usuarios          50,760
+  TOTAL                      329,908   (tardíos: 47)
+Tiempo de generación: 0.4 s  (733,351 puntos/s, 4 procesos)
+
+========== 5. Carga por lotes (RF7, RF12) ==========
+Destino: http://localhost:8181  db=fixture2030_vivo  precision=millisecond
+Lote=5000 líneas  hilos=4  reintentos=5
+Archivos: 2 + 1 tardío(s)
+  ... 45,000 puntos enviados
+  ... 100,000 puntos enviados
+  ... 150,000 puntos enviados
+  ... 200,000 puntos enviados
+  ... 240,000 puntos enviados
+  ... 295,000 puntos enviados
+Cargando eventos tardíos (llegan después del resto del partido)...
+{
+ "fecha_utc": "2026-10-04T23:50:46Z",
+ "etiqueta": "evidencia_demo",
+ "url": "http://localhost:8181",
+ "db": "fixture2030_vivo",
+ "corrida": "demo_2030",
+ "puntos_esperados": 329908,
+ "precision": "millisecond",
+ "lote": 5000,
+ "hilos": 4,
+ "lotes_ok": 68,
+ "lotes_fallidos": 0,
+ "reintentos": 0,
+ "puntos_enviados": 329908,
+ "lineas_rechazadas": 0,
+ "puntos_aceptados": 329908,
+ "segundos_total": 17.565,
+ "segundos_sin_tardios": 16.58,
+ "puntos_por_segundo": 18782.2,
+ "latencia_lote_ms": {
+  "p50": 999.2,
+  "p95": 1002.1,
+  "max": 1003.7
+ },
+ "cliente": {
+  "python": "3.9.6",
+  "so": "macOS-26.5.2-arm64-arm-64bit"
+ }
+}
+Métricas guardadas en docs/evidencia/carga_20261004_205046.json
+
+========== 6. Manejo de errores de carga (RF12) ==========
+Lote enviado:
+  1: prueba_errores,origen=demo valor=1.5 1791157846185
+  2: prueba_errores,origen=demo valor=7i 1791157846186
+  3: prueba_errores,origen=demo valor=2.5 1791157846187
+  4: esto no es line protocol
+  5: prueba_errores,origen=demo valor="texto" 1791157846188
+
+Respuesta: partial write of line protocol occurred
+Líneas rechazadas: 3 de 5 (las válidas se escribieron)
+  - línea 2: invalid column type for column 'valor', expected iox::column_type::field::float, got iox::column_type::field::integer
+  - línea 4: No fields were provided
+  - línea 5: invalid column type for column 'valor', expected iox::column_type::field::float, got iox::column_type::field::string
+Decisión del cargador: un 400 no se reintenta (el dato es inválido, reintentar no lo corrige);
+las líneas rechazadas se registran en la evidencia para corregir la fuente.
+
+========== 7. Validación de cantidades, series, distribución y tipos (RF11, RNF6) ==========
+Corrida: demo_2030  (2 partidos)  db=fixture2030_vivo
+
+V1/V2/V4 — puntos observados/esperados por partido
++---------+---------------------+---------------------+-----------------+--------------------+----------+
+| partido | estadisticas_equipo | rendimiento_jugador | eventos_partido | actividad_usuarios | pases_ok |
++---------+---------------------+---------------------+-----------------+--------------------+----------+
+| P001    | 11400/11400         | 125400/125400       | 1356/1356       | 25200/25200        | si       |
+| P002    | 11640/11640         | 128040/128040       | 1312/1312       | 25560/25560        | si       |
++---------+---------------------+---------------------+-----------------+--------------------+----------+
+2 filas
+
+Totales por tabla (observado vs esperado)
++---------------------+-----------+----------+----+
+| tabla               | observado | esperado | ok |
++---------------------+-----------+----------+----+
+| estadisticas_equipo | 23040     | 23040    | si |
+| rendimiento_jugador | 253440    | 253440   | si |
+| eventos_partido     | 2668      | 2668     | si |
+| actividad_usuarios  | 50760     | 50760    | si |
++---------------------+-----------+----------+----+
+4 filas
+
+V5 — tipos de columnas en InfluxDB
++---------------------+-------------------+-----------+-------------------------+
+| tabla               | columna           | rol       | tipo                    |
++---------------------+-------------------+-----------+-------------------------+
+| estadisticas_equipo | partido_id        | tag       | Dictionary(Int32, Utf8) |
+| estadisticas_equipo | equipo_id         | tag       | Dictionary(Int32, Utf8) |
+| estadisticas_equipo | condicion         | tag       | Dictionary(Int32, Utf8) |
+| estadisticas_equipo | fase              | tag       | Dictionary(Int32, Utf8) |
+| estadisticas_equipo | sede_id           | tag       | Dictionary(Int32, Utf8) |
+| estadisticas_equipo | pais_sede         | tag       | Dictionary(Int32, Utf8) |
+| estadisticas_equipo | minuto            | field     | Int64                   |
+| estadisticas_equipo | posesion_pct      | field     | Float64                 |
+| estadisticas_equipo | pases_intentados  | field     | Int64                   |
+| estadisticas_equipo | pases_completados | field     | Int64                   |
+| estadisticas_equipo | tiros             | field     | Int64                   |
+| estadisticas_equipo | tiros_al_arco     | field     | Int64                   |
+| estadisticas_equipo | recuperaciones    | field     | Int64                   |
+| estadisticas_equipo | faltas            | field     | Int64                   |
+| estadisticas_equipo | corners           | field     | Int64                   |
+| estadisticas_equipo | goles             | field     | Int64                   |
+| estadisticas_equipo | xg_acum           | field     | Float64                 |
+| estadisticas_equipo | time              | timestamp | Timestamp(ns)           |
+| rendimiento_jugador | partido_id        | tag       | Dictionary(Int32, Utf8) |
+| rendimiento_jugador | equipo_id         | tag       | Dictionary(Int32, Utf8) |
+| rendimiento_jugador | jugador_id        | tag       | Dictionary(Int32, Utf8) |
+| rendimiento_jugador | minuto            | field     | Int64                   |
+| rendimiento_jugador | velocidad_kmh     | field     | Float64                 |
+| rendimiento_jugador | distancia_m       | field     | Float64                 |
+| rendimiento_jugador | sprints           | field     | Int64                   |
+| rendimiento_jugador | time              | timestamp | Timestamp(ns)           |
+| eventos_partido     | partido_id        | tag       | Dictionary(Int32, Utf8) |
+| eventos_partido     | equipo_id         | tag       | Dictionary(Int32, Utf8) |
+| eventos_partido     | tipo_evento       | tag       | Dictionary(Int32, Utf8) |
+| eventos_partido     | jugador_id        | field     | Utf8                    |
+| eventos_partido     | minuto            | field     | Int64                   |
+| eventos_partido     | exitoso           | field     | Boolean                 |
+| eventos_partido     | x                 | field     | Float64                 |
+| eventos_partido     | y                 | field     | Float64                 |
+| eventos_partido     | xg                | field     | Float64                 |
+| eventos_partido     | valor             | field     | Int64                   |
+| eventos_partido     | time              | timestamp | Timestamp(ns)           |
+| actividad_usuarios  | partido_id        | tag       | Dictionary(Int32, Utf8) |
+| actividad_usuarios  | plataforma        | tag       | Dictionary(Int32, Utf8) |
+| actividad_usuarios  | fase              | tag       | Dictionary(Int32, Utf8) |
+| actividad_usuarios  | pais_sede         | tag       | Dictionary(Int32, Utf8) |
+| actividad_usuarios  | usuarios_activos  | field     | Int64                   |
+| actividad_usuarios  | solicitudes       | field     | Int64                   |
+| actividad_usuarios  | errores           | field     | Int64                   |
+| actividad_usuarios  | latencia_p95_ms   | field     | Float64                 |
+| actividad_usuarios  | time              | timestamp | Timestamp(ns)           |
++---------------------+-------------------+-----------+-------------------------+
+46 filas
+
+TOTAL puntos: observado 329,908 / esperado 329,908
+
+VALIDACION OK: cantidades, series, distribución 1 Hz, coherencia y tipos coinciden.
+
+========== 8. Consultas temporales (RF8) ==========
+Corrida: demo_2030 | partido de referencia P001 (E001 vs E002, sede S01)
+
+====================================================================================================
+c01_ventana_partido.sql — Ventana temporal — estadísticas de ambos equipos entre el minuto 60 y 65
+Patrón de acceso: PA2 (ventana de un partido)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT time, equipo_id, condicion, minuto, posesion_pct,
+       pases_intentados, pases_completados, tiros, goles
+FROM estadisticas_equipo
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T21:18:00.000Z' AND time < '2026-10-04T21:23:00.000Z'
+ORDER BY time, equipo_id
+----------------------------------------------------------------------------------------------------
++-------------------------+-----------+-----------+--------+--------------+------------------+-------------------+-------+-------+
+| time                    | equipo_id | condicion | minuto | posesion_pct | pases_intentados | pases_completados | tiros | goles |
++-------------------------+-----------+-----------+--------+--------------+------------------+-------------------+-------+-------+
+| 2026-10-04T21:18:00.124 | E002      | visitante | 61     | 46.450       | 348              | 290               | 11    | 0     |
+| 2026-10-04T21:18:00.221 | E001      | local     | 61     | 53.550       | 367              | 295               | 2     | 1     |
+| 2026-10-04T21:18:01.066 | E002      | visitante | 61     | 46.450       | 348              | 290               | 11    | 0     |
+| 2026-10-04T21:18:01.131 | E001      | local     | 61     | 53.550       | 367              | 295               | 2     | 1     |
+| 2026-10-04T21:18:02.118 | E002      | visitante | 61     | 46.470       | 349              | 291               | 11    | 0     |
+| 2026-10-04T21:18:02.183 | E001      | local     | 61     | 53.530       | 367              | 295               | 2     | 1     |
+| 2026-10-04T21:18:03.222 | E001      | local     | 61     | 53.500       | 367              | 295               | 2     | 1     |
+| 2026-10-04T21:18:03.231 | E002      | visitante | 61     | 46.500       | 349              | 291               | 11    | 0     |
+| 2026-10-04T21:18:04.148 | E001      | local     | 61     | 53.500       | 367              | 295               | 2     | 1     |
+| 2026-10-04T21:18:04.208 | E002      | visitante | 61     | 46.500       | 349              | 291               | 11    | 0     |
+| 2026-10-04T21:18:05.176 | E001      | local     | 61     | 53.480       | 367              | 295               | 2     | 1     |
+| 2026-10-04T21:18:05.205 | E002      | visitante | 61     | 46.520       | 349              | 291               | 11    | 0     |
++-------------------------+-----------+-----------+--------+--------------+------------------+-------------------+-------+-------+
+... 588 filas más (total 600)
+Tiempo (cliente HTTP, 1 ejec.): mediana 9.4 ms | min 9.4 | max 9.4
+Interpretación: 1 punto por segundo y equipo (2 x 300 = 600 filas). Los contadores (pases, tiros) solo crecen; la posesión es el % acumulado del partido.
+
+====================================================================================================
+c02_filtro_jugador.sql — Filtro por dimensión — rendimiento físico de un jugador cada 30 s
+Patrón de acceso: PA4 (rendimiento de un jugador)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT date_bin(INTERVAL '30 seconds', time) AS time,
+       jugador_id,
+       round(avg(velocidad_kmh), 2) AS velocidad_avg_kmh,
+       round(max(velocidad_kmh), 2) AS velocidad_max_kmh,
+       round(max(distancia_m), 1)   AS distancia_acum_m,
+       max(sprints)                 AS sprints_acum,
+       count(*)                     AS muestras
+FROM rendimiento_jugador
+WHERE partido_id = 'P001'
+  AND equipo_id = 'E001'
+  AND jugador_id = 'E001J09'
+  AND time >= '2026-10-04T21:18:00.000Z' AND time < '2026-10-04T21:23:00.000Z'
+GROUP BY 1, jugador_id
+ORDER BY 1
+----------------------------------------------------------------------------------------------------
++---------------------+------------+-------------------+-------------------+------------------+--------------+----------+
+| time                | jugador_id | velocidad_avg_kmh | velocidad_max_kmh | distancia_acum_m | sprints_acum | muestras |
++---------------------+------------+-------------------+-------------------+------------------+--------------+----------+
+| 2026-10-04T21:18:00 | E001J09    | 5.600             | 8.290             | 7518.700         | 16           | 30       |
+| 2026-10-04T21:18:30 | E001J09    | 4.900             | 7.320             | 7559.500         | 16           | 30       |
+| 2026-10-04T21:19:00 | E001J09    | 3.620             | 9.110             | 7589.700         | 16           | 30       |
+| 2026-10-04T21:19:30 | E001J09    | 6.370             | 11.020            | 7642.800         | 16           | 30       |
+| 2026-10-04T21:20:00 | E001J09    | 5.210             | 8.110             | 7686.200         | 16           | 30       |
+| 2026-10-04T21:20:30 | E001J09    | 5.170             | 7.570             | 7729.300         | 16           | 30       |
+| 2026-10-04T21:21:00 | E001J09    | 7.090             | 9.800             | 7788.400         | 16           | 30       |
+| 2026-10-04T21:21:30 | E001J09    | 6.170             | 9.460             | 7839.800         | 16           | 30       |
+| 2026-10-04T21:22:00 | E001J09    | 6.900             | 9.340             | 7897.200         | 16           | 30       |
+| 2026-10-04T21:22:30 | E001J09    | 5.580             | 9.050             | 7943.800         | 16           | 30       |
++---------------------+------------+-------------------+-------------------+------------------+--------------+----------+
+10 filas
+Tiempo (cliente HTTP, 1 ejec.): mediana 12.8 ms | min 12.8 | max 12.8
+Interpretación: Filtra por tres tags (partido, equipo, jugador) y una ventana de 5 min. velocidad = gauge (avg/max); distancia = contador acumulado (max = valor al final del intervalo).
+
+====================================================================================================
+c03_comparacion_equipos.sql — Comparación de dimensiones — local vs visitante cada 5 minutos
+Patrón de acceso: PA3 (comparar equipos dentro del partido)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT date_bin(INTERVAL '5 minutes', time) AS time,
+       equipo_id,
+       condicion,
+       round(avg(posesion_pct), 1) AS posesion_pct_avg,
+       max(pases_intentados)       AS pases_intentados,
+       max(pases_completados)      AS pases_completados,
+       max(tiros)                  AS tiros,
+       max(goles)                  AS goles
+FROM estadisticas_equipo
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+GROUP BY 1, equipo_id, condicion
+ORDER BY 1, condicion
+----------------------------------------------------------------------------------------------------
++---------------------+-----------+-----------+------------------+------------------+-------------------+-------+-------+
+| time                | equipo_id | condicion | posesion_pct_avg | pases_intentados | pases_completados | tiros | goles |
++---------------------+-----------+-----------+------------------+------------------+-------------------+-------+-------+
+| 2026-10-04T20:00:00 | E001      | local     | 61.600           | 32               | 28                | 1     | 0     |
+| 2026-10-04T20:00:00 | E002      | visitante | 38.400           | 22               | 19                | 2     | 0     |
+| 2026-10-04T20:05:00 | E001      | local     | 62.300           | 57               | 49                | 1     | 0     |
+| 2026-10-04T20:05:00 | E002      | visitante | 37.700           | 46               | 38                | 2     | 0     |
+| 2026-10-04T20:10:00 | E001      | local     | 53.200           | 89               | 74                | 1     | 0     |
+| 2026-10-04T20:10:00 | E002      | visitante | 46.800           | 78               | 65                | 2     | 0     |
+| 2026-10-04T20:15:00 | E001      | local     | 56.600           | 112              | 96                | 1     | 0     |
+| 2026-10-04T20:15:00 | E002      | visitante | 43.400           | 92               | 76                | 3     | 0     |
+| 2026-10-04T20:20:00 | E001      | local     | 57.700           | 149              | 128               | 1     | 0     |
+| 2026-10-04T20:20:00 | E002      | visitante | 42.300           | 117              | 97                | 4     | 0     |
+| 2026-10-04T20:25:00 | E001      | local     | 59.000           | 189              | 160               | 1     | 0     |
+| 2026-10-04T20:25:00 | E002      | visitante | 41.000           | 143              | 119               | 5     | 0     |
++---------------------+-----------+-----------+------------------+------------------+-------------------+-------+-------+
+... 28 filas más (total 40)
+Tiempo (cliente HTTP, 1 ejec.): mediana 10.4 ms | min 10.4 | max 10.4
+Interpretación: Para cada bloque de 5 min se toma el último valor acumulado (max) de pases y tiros y el promedio de la posesión acumulada. Los bloques del entretiempo no aparecen porque no hay puntos.
+
+====================================================================================================
+c04_comparacion_plataformas.sql — Comparación de fuentes — actividad por plataforma durante el partido
+Patrón de acceso: PA6 (monitoreo operativo)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT plataforma,
+       round(avg(usuarios_activos), 0)                              AS usuarios_avg,
+       max(usuarios_activos)                                        AS usuarios_pico,
+       sum(solicitudes)                                             AS solicitudes_total,
+       sum(errores)                                                 AS errores_total,
+       round(100.0 * sum(errores) / sum(solicitudes), 3)            AS tasa_error_pct,
+       round(max(latencia_p95_ms), 1)                               AS latencia_p95_max_ms
+FROM actividad_usuarios
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T19:45:00.000Z' AND time < '2026-10-04T22:05:00.000Z'
+GROUP BY plataforma
+ORDER BY usuarios_pico DESC
+----------------------------------------------------------------------------------------------------
++------------+--------------+---------------+-------------------+---------------+----------------+---------------------+
+| plataforma | usuarios_avg | usuarios_pico | solicitudes_total | errores_total | tasa_error_pct | latencia_p95_max_ms |
++------------+--------------+---------------+-------------------+---------------+----------------+---------------------+
+| android    | 162008.000   | 240716        | 27496204          | 10066         | 0.037          | 141.700             |
+| ios        | 144972.000   | 215192        | 24565006          | 8472          | 0.034          | 133.600             |
+| web        | 119414.000   | 178336        | 20253011          | 6449          | 0.032          | 131.100             |
++------------+--------------+---------------+-------------------+---------------+----------------+---------------------+
+3 filas
+Tiempo (cliente HTTP, 1 ejec.): mediana 17.7 ms | min 17.7 | max 17.7
+Interpretación: usuarios_activos es un gauge: se informa promedio y pico, nunca la suma en el tiempo. solicitudes y errores son deltas por segundo: se suman. La latencia p95 ya es un percentil: se toma el máximo.
+
+====================================================================================================
+c05_comparacion_sedes.sql — Comparación entre partidos — pico de audiencia simultánea por país sede y fase
+Patrón de acceso: PA7 (comparar audiencia entre sedes)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT pais_sede, fase, partido_id,
+       max(usuarios_total) AS pico_usuarios_simultaneos,
+       round(avg(usuarios_total), 0) AS promedio_usuarios
+FROM (
+  SELECT date_bin(INTERVAL '1 second', time) AS segundo,
+         pais_sede, fase, partido_id,
+         sum(usuarios_activos) AS usuarios_total
+  FROM actividad_usuarios
+  WHERE time >= '2026-10-04T19:45:00.000Z' AND time < '2026-10-04T22:07:00.000Z'
+  GROUP BY 1, pais_sede, fase, partido_id
+) AS por_segundo
+GROUP BY pais_sede, fase, partido_id
+ORDER BY pico_usuarios_simultaneos DESC
+----------------------------------------------------------------------------------------------------
++-----------+--------+------------+---------------------------+-------------------+
+| pais_sede | fase   | partido_id | pico_usuarios_simultaneos | promedio_usuarios |
++-----------+--------+------------+---------------------------+-------------------+
+| URY       | grupos | P001       | 630523                    | 426394.000        |
+| ARG       | grupos | P002       | 619054                    | 415048.000        |
++-----------+--------+------------+---------------------------+-------------------+
+2 filas
+Tiempo (cliente HTTP, 1 ejec.): mediana 19.8 ms | min 19.8 | max 19.8
+Interpretación: Primero se suman las plataformas en el mismo segundo (sumar gauges de series distintas en un mismo instante es válido); después se toma el máximo por partido. Sumar usuarios a lo largo del tiempo sería un error semántico.
+
+====================================================================================================
+c06_ventana_reciente.sql — Ventana reciente — últimos 2 minutos respecto de now()
+Patrón de acceso: PA1 (estado en vivo)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT time, partido_id, equipo_id, minuto, posesion_pct, pases_intentados, tiros, goles
+FROM estadisticas_equipo
+WHERE time >= now() - INTERVAL '2 minutes'
+ORDER BY time DESC
+LIMIT 10
+----------------------------------------------------------------------------------------------------
+(sin filas)
+Tiempo (cliente HTTP, 1 ejec.): mediana 1.9 ms | min 1.9 | max 1.9
+Interpretación: Solo devuelve filas mientras corre scripts/simulador_vivo.py (o hubo escrituras en los últimos 2 min). Sin filas = la fuente no está enviando datos; la aplicación debe mostrar el último valor conocido con la marca "sin actualización desde ...".
+
+====================================================================================================
+c07_ultimo_valor_cache.sql — Último valor por equipo desde la Last Value Cache
+Patrón de acceso: PA1 (estado en vivo)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT *
+FROM last_cache('estadisticas_equipo', 'ultimo_estado_equipo')
+ORDER BY partido_id, equipo_id
+----------------------------------------------------------------------------------------------------
+(consulta opcional no disponible: HTTP 400: Error during planning: could not find cache for the given arguments)
+
+====================================================================================================
+c08_ausencia_entretiempo.sql — Ausencia de puntos — entretiempo con date_bin_gapfill
+Patrón de acceso: PA2 / respuesta ante ausencia de puntos
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT date_bin_gapfill(INTERVAL '1 minute', time) AS time,
+       equipo_id,
+       count(*)                AS muestras,
+       locf(avg(posesion_pct)) AS posesion_pct_locf
+FROM estadisticas_equipo
+WHERE partido_id = 'P001'
+  AND equipo_id = 'E001'
+  AND time >= '2026-10-04T20:38:00.000Z' AND time < '2026-10-04T21:13:00.000Z'
+GROUP BY 1, equipo_id
+ORDER BY 1
+----------------------------------------------------------------------------------------------------
++---------------------+-----------+----------+-------------------+
+| time                | equipo_id | muestras | posesion_pct_locf |
++---------------------+-----------+----------+-------------------+
+| 2026-10-04T20:38:00 | E001      | 60       | 55.381            |
+| 2026-10-04T20:39:00 | E001      | 60       | 55.492            |
+| 2026-10-04T20:40:00 | E001      | 60       | 55.492            |
+| 2026-10-04T20:41:00 | E001      | 60       | 55.557            |
+| 2026-10-04T20:42:00 | E001      | 60       | 55.364            |
+| 2026-10-04T20:43:00 | E001      | 60       | 55.422            |
+| 2026-10-04T20:44:00 | E001      | 60       | 54.927            |
+| 2026-10-04T20:45:00 | E001      | 60       | 54.805            |
+| 2026-10-04T20:46:00 | E001      | 60       | 54.854            |
+| 2026-10-04T20:47:00 | E001      | 60       | 54.341            |
+| 2026-10-04T20:48:00 | E001      | 0        | 54.341            |
+| 2026-10-04T20:49:00 | E001      | 0        | 54.341            |
++---------------------+-----------+----------+-------------------+
+... 23 filas más (total 35)
+Tiempo (cliente HTTP, 1 ejec.): mediana 5.8 ms | min 5.8 | max 5.8
+Interpretación: Los minutos del entretiempo aparecen con muestras = NULL (no hubo puntos) y la posesión se rellena con el último valor conocido (locf). Así se distingue "sin dato" de "valor 0".
+
+====================================================================================================
+c09_linea_de_tiempo_goles.sql — Línea de tiempo de tiros y goles del partido
+Patrón de acceso: PA5 (eventos del partido)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT time, minuto, equipo_id, tipo_evento, jugador_id, exitoso AS al_arco, round(xg, 3) AS xg
+FROM eventos_partido
+WHERE partido_id = 'P001'
+  AND tipo_evento IN ('tiro', 'gol')
+  AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+ORDER BY time
+----------------------------------------------------------------------------------------------------
++-------------------------+--------+-----------+-------------+------------+---------+-------+
+| time                    | minuto | equipo_id | tipo_evento | jugador_id | al_arco | xg    |
++-------------------------+--------+-----------+-------------+------------+---------+-------+
+| 2026-10-04T20:01:37.042 | 2      | E002      | tiro        | E002J08    | False   | 0.425 |
+| 2026-10-04T20:01:49.383 | 2      | E001      | tiro        | E001J05    | False   | 0.204 |
+| 2026-10-04T20:02:47.692 | 3      | E002      | tiro        | E002J02    | False   | 0.428 |
+| 2026-10-04T20:16:11.814 | 17     | E002      | tiro        | E002J10    | False   | 0.132 |
+| 2026-10-04T20:21:02.261 | 22     | E002      | tiro        | E002J03    | True    | 0.100 |
+| 2026-10-04T20:27:48.651 | 28     | E002      | tiro        | E002J09    | True    | 0.048 |
+| 2026-10-04T20:34:04.013 | 35     | E002      | tiro        | E002J07    | False   | 0.263 |
+| 2026-10-04T20:34:24.041 | 35     | E002      | tiro        | E002J03    | False   | 0.443 |
+| 2026-10-04T20:45:30.425 | 46     | E002      | tiro        | E002J04    | True    | 0.441 |
+| 2026-10-04T21:03:00.364 | 46     | E001      | tiro        | E001J08    | True    | 0.115 |
+| 2026-10-04T21:03:00.628 | 46     | E001      | gol         | E001J08    | True    | NULL  |
+| 2026-10-04T21:04:27.299 | 47     | E002      | tiro        | E002J09    | True    | 0.448 |
++-------------------------+--------+-----------+-------------+------------+---------+-------+
+... 8 filas más (total 20)
+Tiempo (cliente HTTP, 1 ejec.): mediana 6.6 ms | min 6.6 | max 6.6
+Interpretación: Los eventos tienen timestamp irregular (ms). jugador_id es un field (no tag): se devuelve como dato sin multiplicar series.
+
+========== 9. Agregaciones (RF9) ==========
+  P001 resumido
+  P002 resumido
+
+Downsampling fixture2030_vivo -> fixture2030_historico  (2 partidos, 7.6 s)
++------------------------+---------------+-----------+-------------+
+| tabla_resumen          | puntos_crudos | puntos_1m | reduccion_x |
++------------------------+---------------+-----------+-------------+
+| estadisticas_equipo_1m | 23040         | 384       | 60.000      |
+| rendimiento_jugador_1m | 253440        | 4224      | 60.000      |
+| eventos_partido_1m     | 2668          | 756       | 3.500       |
+| actividad_usuarios_1m  | 50760         | 846       | 60.000      |
++------------------------+---------------+-----------+-------------+
+4 filas
+Corrida: demo_2030 | partido de referencia P001 (E001 vs E002, sede S01)
+
+====================================================================================================
+a01_posesion_por_bloque.sql — Posesión por bloques de 15 minutos (gauge -> avg y último valor)
+Patrón de acceso: PA3 / PA8
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT date_bin(INTERVAL '15 minutes', time) AS time,
+       equipo_id,
+       round(avg(posesion_pct), 2)                      AS posesion_avg,
+       round(last_value(posesion_pct ORDER BY time), 2) AS posesion_al_cierre,
+       count(*)                                         AS muestras
+FROM estadisticas_equipo
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+GROUP BY 1, equipo_id
+ORDER BY 1, equipo_id
+----------------------------------------------------------------------------------------------------
++---------------------+-----------+--------------+--------------------+----------+
+| time                | equipo_id | posesion_avg | posesion_al_cierre | muestras |
++---------------------+-----------+--------------+--------------------+----------+
+| 2026-10-04T20:00:00 | E001      | 59.050       | 54.210             | 900      |
+| 2026-10-04T20:00:00 | E002      | 40.950       | 45.790             | 900      |
+| 2026-10-04T20:15:00 | E001      | 57.760       | 58.630             | 900      |
+| 2026-10-04T20:15:00 | E002      | 42.240       | 41.370             | 900      |
+| 2026-10-04T20:30:00 | E001      | 56.210       | 54.730             | 900      |
+| 2026-10-04T20:30:00 | E002      | 43.790       | 45.270             | 900      |
+| 2026-10-04T20:45:00 | E001      | 54.670       | 54.010             | 180      |
+| 2026-10-04T20:45:00 | E002      | 45.330       | 45.990             | 180      |
+| 2026-10-04T21:00:00 | E001      | 54.240       | 54.350             | 720      |
+| 2026-10-04T21:00:00 | E002      | 45.760       | 45.650             | 720      |
+| 2026-10-04T21:15:00 | E001      | 53.110       | 53.080             | 900      |
+| 2026-10-04T21:15:00 | E002      | 46.890       | 46.920             | 900      |
++---------------------+-----------+--------------+--------------------+----------+
+... 4 filas más (total 16)
+Tiempo (cliente HTTP, 1 ejec.): mediana 24.7 ms | min 24.7 | max 24.7
+Interpretación: posesion_pct es un porcentaje acumulado: el valor al final del bloque (last_value) es la posesión del partido hasta ese momento; el promedio describe el bloque. Sumarla no tiene significado.
+
+====================================================================================================
+a02_pases_por_intervalo.sql — Pases por intervalo de 5 min a partir de un contador acumulado (max + diferencia)
+Patrón de acceso: PA3
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT time, equipo_id, pases_acumulados,
+       pases_acumulados - coalesce(lag(pases_acumulados) OVER (PARTITION BY equipo_id ORDER BY time), 0)
+         AS pases_en_intervalo
+FROM (
+  SELECT date_bin(INTERVAL '5 minutes', time) AS time,
+         equipo_id,
+         max(pases_intentados) AS pases_acumulados
+  FROM estadisticas_equipo
+  WHERE partido_id = 'P001'
+    AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+  GROUP BY 1, equipo_id
+) AS bloques
+ORDER BY time, equipo_id
+----------------------------------------------------------------------------------------------------
++---------------------+-----------+------------------+--------------------+
+| time                | equipo_id | pases_acumulados | pases_en_intervalo |
++---------------------+-----------+------------------+--------------------+
+| 2026-10-04T20:00:00 | E001      | 32               | 32                 |
+| 2026-10-04T20:00:00 | E002      | 22               | 22                 |
+| 2026-10-04T20:05:00 | E001      | 57               | 25                 |
+| 2026-10-04T20:05:00 | E002      | 46               | 24                 |
+| 2026-10-04T20:10:00 | E001      | 89               | 32                 |
+| 2026-10-04T20:10:00 | E002      | 78               | 32                 |
+| 2026-10-04T20:15:00 | E001      | 112              | 23                 |
+| 2026-10-04T20:15:00 | E002      | 92               | 14                 |
+| 2026-10-04T20:20:00 | E001      | 149              | 37                 |
+| 2026-10-04T20:20:00 | E002      | 117              | 25                 |
+| 2026-10-04T20:25:00 | E001      | 189              | 40                 |
+| 2026-10-04T20:25:00 | E002      | 143              | 26                 |
++---------------------+-----------+------------------+--------------------+
+... 28 filas más (total 40)
+Tiempo (cliente HTTP, 1 ejec.): mediana 14.8 ms | min 14.8 | max 14.8
+Interpretación: pases_intentados es acumulado: el max de cada bloque es el total hasta ese momento y la diferencia con el bloque anterior es la cantidad de pases EN el bloque. Sumar el contador daría un número sin sentido.
+
+====================================================================================================
+a03_eventos_por_tipo.sql — Eventos por tipo y equipo (eventos -> count / sum)
+Patrón de acceso: PA5
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT equipo_id, tipo_evento,
+       count(*)                                                     AS cantidad,
+       sum(valor)                                                   AS suma_valor,
+       sum(CASE WHEN exitoso THEN 1 ELSE 0 END)                     AS exitosos,
+       CASE WHEN tipo_evento IN ('pase', 'tiro')
+            THEN round(100.0 * sum(CASE WHEN exitoso THEN 1 ELSE 0 END) / count(*), 1)
+       END                                                          AS efectividad_pct,
+       round(sum(xg), 2)                                            AS xg_total
+FROM eventos_partido
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T19:45:00.000Z' AND time < '2026-10-04T22:05:00.000Z'
+GROUP BY equipo_id, tipo_evento
+ORDER BY equipo_id, cantidad DESC
+----------------------------------------------------------------------------------------------------
++-----------+--------------+----------+------------+----------+-----------------+----------+
+| equipo_id | tipo_evento  | cantidad | suma_valor | exitosos | efectividad_pct | xg_total |
++-----------+--------------+----------+------------+----------+-----------------+----------+
+| E001      | pase         | 560      | 560        | 460      | 82.100          | NULL     |
+| E001      | recuperacion | 116      | 116        | 0        | NULL            | NULL     |
+| E001      | falta        | 12       | 12         | 0        | NULL            | NULL     |
+| E001      | tiro         | 7        | 7          | 2        | 28.600          | 1.400    |
+| E001      | sustitucion  | 3        | 3          | 0        | NULL            | NULL     |
+| E001      | gol          | 1        | 1          | 1        | NULL            | NULL     |
+| E001      | corner       | 1        | 1          | 0        | NULL            | NULL     |
+| E002      | pase         | 518      | 518        | 424      | 81.900          | NULL     |
+| E002      | recuperacion | 117      | 117        | 0        | NULL            | NULL     |
+| E002      | tiro         | 12       | 12         | 4        | 33.300          | 3.430    |
+| E002      | falta        | 3        | 3          | 0        | NULL            | NULL     |
+| E002      | sustitucion  | 3        | 3          | 0        | NULL            | NULL     |
++-----------+--------------+----------+------------+----------+-----------------+----------+
+... 2 filas más (total 14)
+Tiempo (cliente HTTP, 1 ejec.): mediana 13.2 ms | min 13.2 | max 13.2
+Interpretación: Cada fila de eventos_partido es una ocurrencia: la agregación correcta es COUNT (o SUM(valor)). efectividad = exitosos / total, solo donde tiene sentido (pase completado, tiro al arco).
+
+====================================================================================================
+a04_top_distancia.sql — Top 10 jugadores por distancia recorrida en el partido
+Patrón de acceso: PA4
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT jugador_id, equipo_id,
+       round(max(distancia_m) / 1000, 2)  AS distancia_km,
+       round(avg(velocidad_kmh), 2)       AS velocidad_avg_kmh,
+       round(max(velocidad_kmh), 2)       AS velocidad_max_kmh,
+       max(sprints)                       AS sprints,
+       round(count(*) / 60.0, 1)          AS minutos_con_datos
+FROM rendimiento_jugador
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+GROUP BY jugador_id, equipo_id
+ORDER BY distancia_km DESC
+LIMIT 10
+----------------------------------------------------------------------------------------------------
++------------+-----------+--------------+-------------------+-------------------+---------+-------------------+
+| jugador_id | equipo_id | distancia_km | velocidad_avg_kmh | velocidad_max_kmh | sprints | minutos_con_datos |
++------------+-----------+--------------+-------------------+-------------------+---------+-------------------+
+| E001J03    | E001      | 11.600       | 7.320             | 32.630            | 30      | 95.000            |
+| E002J01    | E002      | 11.560       | 7.300             | 32.690            | 21      | 95.000            |
+| E002J06    | E002      | 11.540       | 7.290             | 32.720            | 27      | 95.000            |
+| E002J04    | E002      | 11.510       | 7.270             | 32.970            | 31      | 95.000            |
+| E001J04    | E001      | 11.510       | 7.270             | 32.920            | 26      | 95.000            |
+| E002J05    | E002      | 11.410       | 7.210             | 32.780            | 32      | 95.000            |
+| E001J02    | E001      | 11.320       | 7.150             | 32.970            | 19      | 95.000            |
+| E001J07    | E001      | 11.230       | 7.090             | 32.320            | 19      | 95.000            |
+| E001J01    | E001      | 11.180       | 7.060             | 32.690            | 28      | 95.000            |
+| E001J06    | E001      | 11.170       | 7.060             | 32.930            | 24      | 95.000            |
++------------+-----------+--------------+-------------------+-------------------+---------+-------------------+
+10 filas
+Tiempo (cliente HTTP, 1 ejec.): mediana 31.9 ms | min 31.9 | max 31.9
+Interpretación: distancia_m es acumulada por jugador: max = distancia total. velocidad es una muestra instantánea: avg = ritmo medio, max = pico. Los suplentes muestran menos distancia porque tienen menos minutos (menos puntos).
+
+====================================================================================================
+a05_actividad_resumen.sql — Actividad de la plataforma cada 10 min (gauge vs delta vs percentil)
+Patrón de acceso: PA6
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT date_bin(INTERVAL '10 minutes', time) AS time,
+       plataforma,
+       round(avg(usuarios_activos), 0)          AS usuarios_avg,
+       max(usuarios_activos)                    AS usuarios_max,
+       sum(solicitudes)                         AS solicitudes,
+       sum(errores)                             AS errores,
+       round(max(latencia_p95_ms), 1)           AS latencia_p95_max_ms
+FROM actividad_usuarios
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T19:45:00.000Z' AND time < '2026-10-04T22:05:00.000Z'
+GROUP BY 1, plataforma
+ORDER BY 1, plataforma
+----------------------------------------------------------------------------------------------------
++---------------------+------------+--------------+--------------+-------------+---------+---------------------+
+| time                | plataforma | usuarios_avg | usuarios_max | solicitudes | errores | latencia_p95_max_ms |
++---------------------+------------+--------------+--------------+-------------+---------+---------------------+
+| 2026-10-04T19:40:00 | android    | 85731.000    | 101217       | 514597      | 126     | 108.800             |
+| 2026-10-04T19:40:00 | ios        | 76748.000    | 90345        | 461792      | 99      | 113.000             |
+| 2026-10-04T19:40:00 | web        | 63194.000    | 74987        | 378569      | 59      | 107.300             |
+| 2026-10-04T19:50:00 | android    | 130182.000   | 162045       | 1567506     | 500     | 117.600             |
+| 2026-10-04T19:50:00 | ios        | 116466.000   | 145349       | 1393208     | 430     | 121.800             |
+| 2026-10-04T19:50:00 | web        | 95846.000    | 119191       | 1151621     | 294     | 118.200             |
+| 2026-10-04T20:00:00 | android    | 177536.000   | 183926       | 2128071     | 801     | 125.500             |
+| 2026-10-04T20:00:00 | ios        | 158834.000   | 164819       | 1906280     | 654     | 123.000             |
+| 2026-10-04T20:00:00 | web        | 130847.000   | 135130       | 1569052     | 529     | 120.900             |
+| 2026-10-04T20:10:00 | android    | 177582.000   | 182792       | 2123765     | 828     | 125.100             |
+| 2026-10-04T20:10:00 | ios        | 158761.000   | 163113       | 1908084     | 661     | 124.800             |
+| 2026-10-04T20:10:00 | web        | 130808.000   | 134688       | 1563340     | 504     | 117.400             |
++---------------------+------------+--------------+--------------+-------------+---------+---------------------+
+... 33 filas más (total 45)
+Tiempo (cliente HTTP, 1 ejec.): mediana 11.1 ms | min 11.1 | max 11.1
+Interpretación: solicitudes/errores son deltas -> SUM; usuarios_activos es gauge -> AVG y MAX; latencia_p95 es un percentil ya calculado -> MAX (promediar percentiles no da el percentil del conjunto).
+
+====================================================================================================
+a06_impacto_goles_en_trafico.sql — Impacto de los goles en el tráfico (eventos + actividad por minuto)
+Patrón de acceso: PA6 + PA5 — interpretación en el contexto del partido
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT t.time,
+       t.solicitudes_por_seg,
+       coalesce(g.goles, 0) AS goles_en_el_minuto
+FROM (
+  SELECT date_bin(INTERVAL '1 minute', time) AS time,
+         round(sum(solicitudes) / 60.0, 0) AS solicitudes_por_seg
+  FROM actividad_usuarios
+  WHERE partido_id = 'P001'
+    AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+  GROUP BY 1
+) AS t
+LEFT JOIN (
+  SELECT date_bin(INTERVAL '1 minute', time) AS time, count(*) AS goles
+  FROM eventos_partido
+  WHERE partido_id = 'P001' AND tipo_evento = 'gol'
+    AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+  GROUP BY 1
+) AS g ON t.time = g.time
+ORDER BY t.solicitudes_por_seg DESC
+LIMIT 10
+----------------------------------------------------------------------------------------------------
++---------------------+---------------------+--------------------+
+| time                | solicitudes_por_seg | goles_en_el_minuto |
++---------------------+---------------------+--------------------+
+| 2026-10-04T21:03:00 | 17775.000           | 1                  |
+| 2026-10-04T21:04:00 | 13307.000           | 0                  |
+| 2026-10-04T21:05:00 | 11348.000           | 0                  |
+| 2026-10-04T21:06:00 | 10322.000           | 0                  |
+| 2026-10-04T21:07:00 | 9851.000            | 0                  |
+| 2026-10-04T21:08:00 | 9658.000            | 0                  |
+| 2026-10-04T21:09:00 | 9450.000            | 0                  |
+| 2026-10-04T21:25:00 | 9425.000            | 0                  |
+| 2026-10-04T21:12:00 | 9417.000            | 0                  |
+| 2026-10-04T20:28:00 | 9409.000            | 0                  |
++---------------------+---------------------+--------------------+
+10 filas
+Tiempo (cliente HTTP, 1 ejec.): mediana 12.1 ms | min 12.1 | max 12.1
+Interpretación: Cruza dos tablas en el mismo bin de 1 minuto. En los minutos con gol las solicitudes por segundo suben respecto del promedio del partido: la plataforma debe dimensionarse para esos picos, no para el promedio.
+
+====================================================================================================
+a07_historico_1m.sql — Consulta sobre el histórico resumido (1 min) — misma pregunta, menos puntos
+Patrón de acceso: PA8 (análisis histórico)
+db: fixture2030_historico
+----------------------------------------------------------------------------------------------------
+SELECT date_bin(INTERVAL '15 minutes', time) AS time,
+       equipo_id,
+       round(avg(posesion_pct_avg), 1) AS posesion_avg,
+       max(pases_intentados)           AS pases_intentados,
+       max(tiros)                      AS tiros,
+       max(goles)                      AS goles,
+       sum(muestras)                   AS puntos_crudos_representados
+FROM estadisticas_equipo_1m
+WHERE partido_id = 'P001'
+  AND time >= '2026-10-04T20:00:00.000Z' AND time < '2026-10-04T21:50:00.000Z'
+GROUP BY 1, equipo_id
+ORDER BY 1, equipo_id
+----------------------------------------------------------------------------------------------------
++---------------------+-----------+--------------+------------------+-------+-------+-----------------------------+
+| time                | equipo_id | posesion_avg | pases_intentados | tiros | goles | puntos_crudos_representados |
++---------------------+-----------+--------------+------------------+-------+-------+-----------------------------+
+| 2026-10-04T20:00:00 | E001      | 59.000       | 89               | 1     | 0     | 900                         |
+| 2026-10-04T20:00:00 | E002      | 41.000       | 78               | 2     | 0     | 900                         |
+| 2026-10-04T20:15:00 | E001      | 57.800       | 189              | 1     | 0     | 900                         |
+| 2026-10-04T20:15:00 | E002      | 42.200       | 143              | 5     | 0     | 900                         |
+| 2026-10-04T20:30:00 | E001      | 56.200       | 273              | 1     | 0     | 900                         |
+| 2026-10-04T20:30:00 | E002      | 43.800       | 248              | 7     | 0     | 900                         |
+| 2026-10-04T20:45:00 | E001      | 54.700       | 294              | 1     | 0     | 180                         |
+| 2026-10-04T20:45:00 | E002      | 45.300       | 263              | 8     | 0     | 180                         |
+| 2026-10-04T21:00:00 | E001      | 54.200       | 355              | 2     | 1     | 720                         |
+| 2026-10-04T21:00:00 | E002      | 45.800       | 329              | 10    | 0     | 720                         |
+| 2026-10-04T21:15:00 | E001      | 53.100       | 445              | 5     | 1     | 900                         |
+| 2026-10-04T21:15:00 | E002      | 46.900       | 406              | 11    | 0     | 900                         |
++---------------------+-----------+--------------+------------------+-------+-------+-----------------------------+
+... 4 filas más (total 16)
+Tiempo (cliente HTTP, 1 ejec.): mediana 7.9 ms | min 7.9 | max 7.9
+Interpretación: Requiere scripts/downsampling.py. Se responde la comparación local/visitante cada 15 min leyendo ~1/60 de los puntos. Se pierde el detalle por segundo pero se conserva lo necesario para el análisis post-partido.
+
+========== 10. Ventana en vivo + Last Value Cache + corte de fuente (PA1) ==========
+
+========== Last Value Caches ==========
+new cache created: {
+  "catalog_batch": {
+    "Database": {
+      "time_ns": 1791157855393960171,
+      "database_id": 1,
+      "database_name": "fixture2030_vivo",
+      "ops": [
+        {
+          "CreateLastCache": {
+            "table_id": 2,
+            "table": "estadisticas_equipo",
+            "id": 0,
+            "node_spec": "all",
+            "name": "ultimo_estado_equipo",
+            "key_columns": [
+              {
+                "tag": 0
+              },
+              {
+                "tag": 1
+              }
+            ],
+            "value_columns": {
+              "explicit": {
+                "columns": [
+                  {
+                    "field": [
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "field": [
+                      0,
+                      1
+                    ]
+                  },
+                  {
+                    "field": [
+                      0,
+                      2
+                    ]
+                  },
+                  {
+                    "field": [
+                      0,
+                      4
+                    ]
+                  },
+                  {
+                    "field": [
+                      0,
+                      9
+                    ]
+                  }
+                ]
+              }
+            },
+            "count": 1,
+            "ttl": 14400
+          }
+        }
+      ]
+    }
+  },
+  "sequence_number": 14
+}
+LVC ultimo_estado_equipo creada
+new cache created: {
+  "catalog_batch": {
+    "Database": {
+      "time_ns": 1791157855450830505,
+      "database_id": 1,
+      "database_name": "fixture2030_vivo",
+      "ops": [
+        {
+          "CreateLastCache": {
+            "table_id": 0,
+            "table": "actividad_usuarios",
+            "id": 0,
+            "node_spec": "all",
+            "name": "ultima_actividad",
+            "key_columns": [
+              {
+                "tag": 0
+              },
+              {
+                "tag": 1
+              }
+            ],
+            "value_columns": {
+              "explicit": {
+                "columns": [
+                  {
+                    "field": [
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "field": [
+                      0,
+                      1
+                    ]
+                  },
+                  {
+                    "field": [
+                      0,
+                      3
+                    ]
+                  }
+                ]
+              }
+            },
+            "count": 1,
+            "ttl": 14400
+          }
+        }
+      ]
+    }
+  },
+  "sequence_number": 15
+}
+LVC ultima_actividad creada
+Simulando P003 (E005 vs E006) en vivo durante 45 s -> fixture2030_vivo
+Corte de fuente: sin datos entre el segundo 20 y 35
+  [  0s] 2026-10-04T23:50:55.529Z pases 1-0 goles 0-0
+  [ 10s] 2026-10-04T23:51:05.530Z pases 5-2 goles 0-0
+  [ 20s] CORTE: la fuente deja de enviar
+  [ 40s] 2026-10-04T23:51:35.530Z pases 12-4 goles 0-0
+Fin de la simulación.
+Corrida: demo_2030 | partido de referencia P001 (E001 vs E002, sede S01)
+
+====================================================================================================
+c06_ventana_reciente.sql — Ventana reciente — últimos 2 minutos respecto de now()
+Patrón de acceso: PA1 (estado en vivo)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT time, partido_id, equipo_id, minuto, posesion_pct, pases_intentados, tiros, goles
+FROM estadisticas_equipo
+WHERE time >= now() - INTERVAL '2 minutes'
+ORDER BY time DESC
+LIMIT 10
+----------------------------------------------------------------------------------------------------
++-------------------------+------------+-----------+--------+--------------+------------------+-------+-------+
+| time                    | partido_id | equipo_id | minuto | posesion_pct | pases_intentados | tiros | goles |
++-------------------------+------------+-----------+--------+--------------+------------------+-------+-------+
+| 2026-10-04T23:51:39.534 | P003       | E005      | 1      | 64.444       | 13               | 0     | 0     |
+| 2026-10-04T23:51:39.534 | P003       | E006      | 1      | 35.556       | 4                | 1     | 0     |
+| 2026-10-04T23:51:38.533 | P003       | E005      | 1      | 65.909       | 13               | 0     | 0     |
+| 2026-10-04T23:51:38.533 | P003       | E006      | 1      | 34.091       | 4                | 1     | 0     |
+| 2026-10-04T23:51:37.534 | P003       | E005      | 1      | 65.116       | 13               | 0     | 0     |
+| 2026-10-04T23:51:37.534 | P003       | E006      | 1      | 34.884       | 4                | 1     | 0     |
+| 2026-10-04T23:51:36.534 | P003       | E006      | 1      | 35.714       | 4                | 1     | 0     |
+| 2026-10-04T23:51:36.534 | P003       | E005      | 1      | 64.286       | 12               | 0     | 0     |
+| 2026-10-04T23:51:35.530 | P003       | E005      | 1      | 65.854       | 12               | 0     | 0     |
+| 2026-10-04T23:51:35.530 | P003       | E006      | 1      | 34.146       | 4                | 0     | 0     |
++-------------------------+------------+-----------+--------+--------------+------------------+-------+-------+
+10 filas
+Tiempo (cliente HTTP, 1 ejec.): mediana 20.6 ms | min 20.6 | max 20.6
+Interpretación: Solo devuelve filas mientras corre scripts/simulador_vivo.py (o hubo escrituras en los últimos 2 min). Sin filas = la fuente no está enviando datos; la aplicación debe mostrar el último valor conocido con la marca "sin actualización desde ...".
+
+====================================================================================================
+c07_ultimo_valor_cache.sql — Último valor por equipo desde la Last Value Cache
+Patrón de acceso: PA1 (estado en vivo)
+db: fixture2030_vivo
+----------------------------------------------------------------------------------------------------
+SELECT *
+FROM last_cache('estadisticas_equipo', 'ultimo_estado_equipo')
+ORDER BY partido_id, equipo_id
+----------------------------------------------------------------------------------------------------
++------------+-----------+--------+--------------+------------------+-------+-------+-------------------------+
+| partido_id | equipo_id | minuto | posesion_pct | pases_intentados | tiros | goles | time                    |
++------------+-----------+--------+--------------+------------------+-------+-------+-------------------------+
+| P003       | E005      | 1      | 64.444       | 13               | 0     | 0     | 2026-10-04T23:51:39.534 |
+| P003       | E006      | 1      | 35.556       | 4                | 1     | 0     | 2026-10-04T23:51:39.534 |
++------------+-----------+--------+--------------+------------------+-------+-------+-------------------------+
+2 filas
+Tiempo (cliente HTTP, 1 ejec.): mediana 3.8 ms | min 3.8 | max 3.8
+Interpretación: Requiere scripts/caches_ultimo_valor.sh. La LVC mantiene en memoria el último punto de cada combinación (partido_id, equipo_id) y responde sin leer Parquet.

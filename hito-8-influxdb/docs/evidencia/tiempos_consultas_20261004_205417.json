@@ -1,0 +1,166 @@
+{
+ "fecha_utc": "2026-10-04T23:56:04Z",
+ "corrida": "lab_2030",
+ "resultados": [
+  {
+   "archivo": "c01_ventana_partido.sql",
+   "titulo": "Ventana temporal — estadísticas de ambos equipos entre el minuto 60 y 65",
+   "db": "fixture2030_vivo",
+   "filas": 600,
+   "ms_mediana": 5.07,
+   "ms_min": 4.63,
+   "ms_max": 9.32,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c02_filtro_jugador.sql",
+   "titulo": "Filtro por dimensión — rendimiento físico de un jugador cada 30 s",
+   "db": "fixture2030_vivo",
+   "filas": 10,
+   "ms_mediana": 5.47,
+   "ms_min": 5.33,
+   "ms_max": 6.04,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c03_comparacion_equipos.sql",
+   "titulo": "Comparación de dimensiones — local vs visitante cada 5 minutos",
+   "db": "fixture2030_vivo",
+   "filas": 40,
+   "ms_mediana": 9.1,
+   "ms_min": 8.66,
+   "ms_max": 11.07,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c04_comparacion_plataformas.sql",
+   "titulo": "Comparación de fuentes — actividad por plataforma durante el partido",
+   "db": "fixture2030_vivo",
+   "filas": 3,
+   "ms_mediana": 9.03,
+   "ms_min": 8.93,
+   "ms_max": 9.53,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c05_comparacion_sedes.sql",
+   "titulo": "Comparación entre partidos — pico de audiencia simultánea por país sede y fase",
+   "db": "fixture2030_vivo",
+   "filas": 12,
+   "ms_mediana": 44.3,
+   "ms_min": 41.21,
+   "ms_max": 48.18,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c06_ventana_reciente.sql",
+   "titulo": "Ventana reciente — últimos 2 minutos respecto de now()",
+   "db": "fixture2030_vivo",
+   "filas": 0,
+   "ms_mediana": 1.68,
+   "ms_min": 1.36,
+   "ms_max": 2.03,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c07_ultimo_valor_cache.sql",
+   "titulo": "Último valor por equipo desde la Last Value Cache",
+   "db": "fixture2030_vivo",
+   "filas": 24,
+   "ms_mediana": 1.34,
+   "ms_min": 1.33,
+   "ms_max": 1.46,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c08_ausencia_entretiempo.sql",
+   "titulo": "Ausencia de puntos — entretiempo con date_bin_gapfill",
+   "db": "fixture2030_vivo",
+   "filas": 35,
+   "ms_mediana": 5.05,
+   "ms_min": 5.02,
+   "ms_max": 5.16,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "c09_linea_de_tiempo_goles.sql",
+   "titulo": "Línea de tiempo de tiros y goles del partido",
+   "db": "fixture2030_vivo",
+   "filas": 20,
+   "ms_mediana": 6.18,
+   "ms_min": 5.87,
+   "ms_max": 6.55,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "a01_posesion_por_bloque.sql",
+   "titulo": "Posesión por bloques de 15 minutos (gauge -> avg y último valor)",
+   "db": "fixture2030_vivo",
+   "filas": 16,
+   "ms_mediana": 7.6,
+   "ms_min": 7.57,
+   "ms_max": 8.11,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "a02_pases_por_intervalo.sql",
+   "titulo": "Pases por intervalo de 5 min a partir de un contador acumulado (max + diferencia)",
+   "db": "fixture2030_vivo",
+   "filas": 40,
+   "ms_mediana": 7.97,
+   "ms_min": 7.62,
+   "ms_max": 8.32,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "a03_eventos_por_tipo.sql",
+   "titulo": "Eventos por tipo y equipo (eventos -> count / sum)",
+   "db": "fixture2030_vivo",
+   "filas": 14,
+   "ms_mediana": 7.48,
+   "ms_min": 7.37,
+   "ms_max": 7.83,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "a04_top_distancia.sql",
+   "titulo": "Top 10 jugadores por distancia recorrida en el partido",
+   "db": "fixture2030_vivo",
+   "filas": 10,
+   "ms_mediana": 15.78,
+   "ms_min": 15.16,
+   "ms_max": 27.94,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "a05_actividad_resumen.sql",
+   "titulo": "Actividad de la plataforma cada 10 min (gauge vs delta vs percentil)",
+   "db": "fixture2030_vivo",
+   "filas": 45,
+   "ms_mediana": 9.4,
+   "ms_min": 9.1,
+   "ms_max": 9.63,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "a06_impacto_goles_en_trafico.sql",
+   "titulo": "Impacto de los goles en el tráfico (eventos + actividad por minuto)",
+   "db": "fixture2030_vivo",
+   "filas": 10,
+   "ms_mediana": 10.02,
+   "ms_min": 9.71,
+   "ms_max": 10.14,
+   "repeticiones": 5
+  },
+  {
+   "archivo": "a07_historico_1m.sql",
+   "titulo": "Consulta sobre el histórico resumido (1 min) — misma pregunta, menos puntos",
+   "db": "fixture2030_historico",
+   "filas": 0,
+   "ms_mediana": 2.37,
+   "ms_min": 2.22,
+   "ms_max": 2.73,
+   "repeticiones": 5
+  }
+ ]
+}

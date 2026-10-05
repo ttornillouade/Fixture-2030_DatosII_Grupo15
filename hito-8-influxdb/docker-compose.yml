@@ -1,0 +1,29 @@
+# Hito 8 — Fixture 2030 — Series temporales en InfluxDB
+#
+# influxdb:3-core = InfluxDB 3 Core (motor SQL + Parquet, puerto 8181).
+# No se usa influxdb:latest porque en Docker Hub ese tag sigue apuntando a
+# InfluxDB 2.x (verificado 2026-10-04: 2.9.1), que no trae el binario influxdb3.
+# Las variables DOCKER_INFLUXDB_INIT_* de InfluxDB 2 NO aplican a esta versión:
+# la autorización se genera después con `influxdb3 create token --admin`
+# (ver scripts/autorizacion.sh).
+#
+# Persistencia: ~/docker/data/influxdb  ->  /var/lib/influxdb3
+#   ~/docker/data/influxdb/data  = object store (catálogo, WAL y archivos Parquet)
+
+services:
+  influxdb:
+    image: influxdb:3-core
+    container_name: ${INFLUX_CONTAINER:-fixture2030-influxdb}
+    restart: unless-stopped
+    ports:
+      - "${INFLUX_PORT:-8181}:8181"
+    command:
+      - influxdb3
+      - serve
+      # El node-id identifica los archivos del nodo dentro del object store.
+      # Si se cambia, el servidor no "ve" los datos ya persistidos.
+      - --node-id=${INFLUX_NODE_ID:-fixture2030-node0}
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+    volumes:
+      - ${HOME}/docker/data/influxdb:/var/lib/influxdb3

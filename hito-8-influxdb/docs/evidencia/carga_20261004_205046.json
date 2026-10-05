@@ -1,0 +1,30 @@
+{
+ "fecha_utc": "2026-10-04T23:50:46Z",
+ "etiqueta": "evidencia_demo",
+ "url": "http://localhost:8181",
+ "db": "fixture2030_vivo",
+ "corrida": "demo_2030",
+ "puntos_esperados": 329908,
+ "precision": "millisecond",
+ "lote": 5000,
+ "hilos": 4,
+ "lotes_ok": 68,
+ "lotes_fallidos": 0,
+ "reintentos": 0,
+ "puntos_enviados": 329908,
+ "lineas_rechazadas": 0,
+ "puntos_aceptados": 329908,
+ "segundos_total": 17.565,
+ "segundos_sin_tardios": 16.58,
+ "puntos_por_segundo": 18782.2,
+ "latencia_lote_ms": {
+  "p50": 999.2,
+  "p95": 1002.1,
+  "max": 1003.7
+ },
+ "cliente": {
+  "python": "3.9.6",
+  "so": "macOS-26.5.2-arm64-arm-64bit"
+ },
+ "muestras_error": []
+}

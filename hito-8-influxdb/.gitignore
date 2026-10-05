@@ -1,0 +1,14 @@
+# Secretos y configuración local
+.env
+*.token
+.influx_token
+
+# Datos generados (se reconstruyen con scripts/generacion_puntos.py)
+data/generated/
+
+# Sistema / temporales
+.DS_Store
+__MACOSX/
+__pycache__/
+*.pyc
+*.log
