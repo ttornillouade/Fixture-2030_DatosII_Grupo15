@@ -192,8 +192,11 @@ ClassMethod ReglasDeEstado()
     do ..Esperar("Iniciar P001 de nuevo (FINALIZADO -> EN_JUEGO)", p.Iniciar(), 0)
     do ..Esperar("Gol en el minuto 0 en P001 FINALIZADO (ejemplo de la consigna)", p.RegistrarEvento("GOL", 0, j), 0)
     do ..Esperar("Gol en el minuto 88 en P001 FINALIZADO", p.RegistrarEvento("GOL", 88, j), 0)
+    write !,"Atomicidad: un mismo %Save lleva un cambio válido (capacidad de la sede) y un evento ilegal",!
+    write "-> se rechaza el guardado completo y no queda ninguno de los dos cambios",!
     do ..Esperar("Saltear el método: Eventos.Insert + %Save en P001 FINALIZADO", ..EventoPorFuera(p, j), 0)
     write "  Eventos de P001 antes: ",eventos," | después: ",..Contar("Fixture.Evento", "Partido->Codigo = 'P001'"),!
+    write "  Capacidad de S01 en memoria: ",p.Sede.Capacidad," | en disco: ",##class(Fixture.Sede).CapacidadGetStored(p.Sede.%Id())," (revertida)",!
 
     write !,"Las mismas reglas valen por SQL (triggers Foreach = row/object):",!
     do ..EsperarSql("INSERT de un evento en P001 FINALIZADO",
@@ -227,6 +230,7 @@ ClassMethod EventoPorFuera(p As Fixture.Partido, j As Fixture.Jugador) As %Statu
 {
     set ev = ##class(Fixture.Evento).%New()
     set ev.Tipo = "GOL", ev.Minuto = 90, ev.Jugador = j, ev.Equipo = j.Equipo
+    set p.Sede.Capacidad = 1000
     do p.Eventos.Insert(ev)
     quit p.%Save()
 }
@@ -281,6 +285,7 @@ ClassMethod Integridad()
     do ..Esperar("Borrar E004 ya sin partidos, pero con jugadores (OnDelete = noaction)", ##class(Fixture.Equipo).CodigoIdxDelete("E004"), 0)
     do ..Esperar("Borrar la sede S01, usada por P001", ##class(Fixture.Sede).CodigoIdxDelete("S01"), 0)
     do ..Esperar("Borrar el árbitro principal de P001", ##class(Fixture.Arbitro).LicenciaIdxDelete("LIC-A01"), 0)
+    do ..Esperar("Borrar un árbitro asistente de P001 (trigger, la lista no admite ForeignKey)", ##class(Fixture.Arbitro).LicenciaIdxDelete("LIC-A03"), 0)
     do ..Esperar("Borrar el técnico de E001", ##class(Fixture.Persona).DocumentoIdxDelete("DOC-E001-DT"), 0)
     do ..Esperar("Borrar un jugador con eventos registrados (E001-J09)", ##class(Fixture.Jugador).CodigoIdxDelete("E001-J09"), 0)
 }
