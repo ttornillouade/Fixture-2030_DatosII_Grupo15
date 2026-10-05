@@ -3,8 +3,8 @@
 Class Fixture.Jugador Extends Fixture.Persona
 {
 
-/// Código del jugador en los hitos anteriores: <equipo>-Jnn (ej. E001-J09).
-Property Codigo As %String(MAXLEN = 8, PATTERN = "1""E""3N1""-J""2N") [ Required ];
+/// Código del jugador en los hitos anteriores: <equipo>Jnn (ej. E001J09).
+Property Codigo As %String(MAXLEN = 7, PATTERN = "1""E""3N1""J""2N") [ Required ];
 
 Property Dorsal As %Integer(MAXVAL = 99, MINVAL = 1) [ Required ];
 

@@ -10,7 +10,7 @@ set p.ArbitroPrincipal = ##class(Fixture.Demo).NuevoArbitro("A01", "FIFA", "ARG"
 // Estado del padre:
 set sc = p.Iniciar()  write "Iniciar: ", $SYSTEM.Status.IsOK(sc), "  estado del partido: ", p.Estado
 // Estado del hijo, agregado al padre en memoria:
-set sc = p.RegistrarEvento("GOL", 23, j("E001-J09"), .gol)  write "RegistrarEvento: ", $SYSTEM.Status.IsOK(sc), "  gol.Partido es p: ", (gol.Partido = p)
+set sc = p.RegistrarEvento("GOL", 23, j("E001J09"), .gol)  write "RegistrarEvento: ", $SYSTEM.Status.IsOK(sc), "  gol.Partido es p: ", (gol.Partido = p)
 write "Ids antes de guardar -> partido: '", p.%Id(), "'  evento: '", gol.%Id(), "'  sede: '", sede.%Id(), "'"
 // Un solo guardado, invocado sobre el padre:
 set sc = p.%Save()  write "p.%Save(): ", $SYSTEM.Status.IsOK(sc)

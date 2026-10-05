@@ -55,12 +55,12 @@ ClassMethod CargarArbol()
     do p.Asistentes.Insert(..NuevoArbitro("A03", "FIFA", "CHL"))
 
     do ..Esperar("Iniciar P001 (alineaciones de 14 y 14 jugadores)", p.Iniciar(), 1)
-    do ..Esperar("Gol de E001-J09 (23')", p.RegistrarEvento("GOL", 23, jugadores("E001-J09")), 1)
-    do ..Esperar("Amarilla a E002-J04 (31')", p.RegistrarEvento("TARJETA_AMARILLA", 31, jugadores("E002-J04")), 1)
-    do ..Esperar("Gol de E002-J10 (58')", p.RegistrarEvento("GOL", 58, jugadores("E002-J10")), 1)
-    do ..Esperar("Sustitución de E001-J11 (60')", p.RegistrarEvento("SUSTITUCION", 60, jugadores("E001-J11")), 1)
-    do ..Esperar("Roja a E002-J05 (71')", p.RegistrarEvento("TARJETA_ROJA", 71, jugadores("E002-J05")), 1)
-    do ..Esperar("Gol de E001-J10 (77')", p.RegistrarEvento("GOL", 77, jugadores("E001-J10")), 1)
+    do ..Esperar("Gol de E001J09 (23')", p.RegistrarEvento("GOL", 23, jugadores("E001J09")), 1)
+    do ..Esperar("Amarilla a E002J04 (31')", p.RegistrarEvento("TARJETA_AMARILLA", 31, jugadores("E002J04")), 1)
+    do ..Esperar("Gol de E002J10 (58')", p.RegistrarEvento("GOL", 58, jugadores("E002J10")), 1)
+    do ..Esperar("Sustitución de E001J11 (60')", p.RegistrarEvento("SUSTITUCION", 60, jugadores("E001J11")), 1)
+    do ..Esperar("Roja a E002J05 (71')", p.RegistrarEvento("TARJETA_ROJA", 71, jugadores("E002J05")), 1)
+    do ..Esperar("Gol de E001J10 (77')", p.RegistrarEvento("GOL", 77, jugadores("E001J10")), 1)
 
     write !,"En memoria, sin guardar: partido id='",p.%Id(),"', equipo local id='",local.%Id()
     write "', eventos en el partido=",p.Eventos.Count(),!
@@ -120,7 +120,7 @@ ClassMethod Navegar()
     write !,"Navegación inversa (bidireccional):",!
     set clave = "", ev = p.Eventos.GetNext(.clave)
     write "  evento ",ev.%Id()," -> Partido -> Sede: ",ev.Partido.Codigo," en ",ev.Partido.Sede.Estadio,!
-    set j = ##class(Fixture.Jugador).CodigoIdxOpen("E001-J09")
+    set j = ##class(Fixture.Jugador).CodigoIdxOpen("E001J09")
     write "  jugador ",j.Codigo," -> Equipo: ",j.Equipo.Nombre," -> Jugadores: ",j.Equipo.Jugadores.Count()
     write " -> Tecnico: ",j.Equipo.Tecnico.NombreCompleto(),!
     write "  ",j.NombreCompleto(),": dorsal ",j.Dorsal,", ",j.PosicionLogicalToDisplay(j.Posicion),", ",j.Edad()," años",!
@@ -171,7 +171,7 @@ ClassMethod JugadorConDato(propiedad As %String, valor As %String) As %Status
 ClassMethod EquipoConJugadorInvalido() As %Status
 {
     set e = ..NuevoEquipo("E003", "Seleccion 003", "Pais 003", "CAF", "A", "MAR", 11, .jugadores)
-    set jugadores("E003-J07").FechaNacimiento = ""
+    set jugadores("E003J07").FechaNacimiento = ""
     quit e.%Save()
 }
 
@@ -184,7 +184,7 @@ ClassMethod ReglasDeEstado()
     do ..SalidaUtf8()
     do ..Titulo("RF9 - Transiciones de estado ilegales")
     set p = ##class(Fixture.Partido).CodigoIdxOpen("P001")
-    set j = ##class(Fixture.Jugador).CodigoIdxOpen("E001-J09")
+    set j = ##class(Fixture.Jugador).CodigoIdxOpen("E001J09")
     set eventos = p.Eventos.Count()
 
     do ..Esperar("Finalizar P001 (EN_JUEGO -> FINALIZADO, guarda el acta)", p.Finalizar(), 1)
@@ -196,7 +196,7 @@ ClassMethod ReglasDeEstado()
     write "-> se rechaza el guardado completo y no queda ninguno de los dos cambios",!
     do ..Esperar("Saltear el método: Eventos.Insert + %Save en P001 FINALIZADO", ..EventoPorFuera(p, j), 0)
     write "  Eventos de P001 antes: ",eventos," | después: ",..Contar("Fixture.Evento", "Partido->Codigo = 'P001'"),!
-    write "  Capacidad de S01 en memoria: ",p.Sede.Capacidad," | en disco: ",##class(Fixture.Sede).CapacidadGetStored(p.Sede.%Id())," (revertida)",!
+    write "  Capacidad de S01 en memoria: ",p.Sede.Capacidad," | en disco: ",##class(Fixture.Sede).CapacidadGetStored(p.Sede.%Id())," (sin cambios)",!
 
     write !,"Las mismas reglas valen por SQL (triggers Foreach = row/object):",!
     do ..EsperarSql("INSERT de un evento en P001 FINALIZADO",
@@ -220,9 +220,9 @@ ClassMethod ReglasDeEstado()
     do ..Esperar("Árbitro principal repetido como asistente", p3.%Save(), 0)
     do p3.Asistentes.Clear()
     do ..Esperar("Iniciar P003 = E001 vs E003", p3.Iniciar(), 1)
-    do ..Esperar("Evento de E004-J01, que no juega P003", p3.RegistrarEvento("GOL", 10, jugadores("E004-J01")), 0)
-    do ..Esperar("Roja a E003-J05 (30')", p3.RegistrarEvento("TARJETA_ROJA", 30, jugadores("E003-J05")), 1)
-    do ..Esperar("Gol de E003-J05 (40'), ya expulsado", p3.RegistrarEvento("GOL", 40, jugadores("E003-J05")), 0)
+    do ..Esperar("Evento de E004J01, que no juega P003", p3.RegistrarEvento("GOL", 10, jugadores("E004J01")), 0)
+    do ..Esperar("Roja a E003J05 (30')", p3.RegistrarEvento("TARJETA_ROJA", 30, jugadores("E003J05")), 1)
+    do ..Esperar("Gol de E003J05 (40'), ya expulsado", p3.RegistrarEvento("GOL", 40, jugadores("E003J05")), 0)
     do ..Esperar("Guardar P003 EN_JUEGO con 1 evento", p3.%Save(), 1)
 }
 
@@ -287,7 +287,7 @@ ClassMethod Integridad()
     do ..Esperar("Borrar el árbitro principal de P001", ##class(Fixture.Arbitro).LicenciaIdxDelete("LIC-A01"), 0)
     do ..Esperar("Borrar un árbitro asistente de P001 (trigger, la lista no admite ForeignKey)", ##class(Fixture.Arbitro).LicenciaIdxDelete("LIC-A03"), 0)
     do ..Esperar("Borrar el técnico de E001", ##class(Fixture.Persona).DocumentoIdxDelete("DOC-E001-DT"), 0)
-    do ..Esperar("Borrar un jugador con eventos registrados (E001-J09)", ##class(Fixture.Jugador).CodigoIdxDelete("E001-J09"), 0)
+    do ..Esperar("Borrar un jugador con eventos registrados (E001J09)", ##class(Fixture.Jugador).CodigoIdxDelete("E001J09"), 0)
 }
 
 // ---------------------------------------------------------------------------------------
@@ -302,7 +302,7 @@ ClassMethod NuevaSede(codigo, estadio, ciudad, pais, capacidad) As Fixture.Sede
 }
 
 /// Crea el equipo con su técnico y "cantidad" jugadores J01..Jnn. No guarda.
-/// Devuelve los jugadores en jugadores("E001-J09") para usarlos en los eventos.
+/// Devuelve los jugadores en jugadores("E001J09") para usarlos en los eventos.
 ClassMethod NuevoEquipo(codigo, nombre, pais, confederacion, grupo, nacionalidad, cantidad, ByRef jugadores) As Fixture.Equipo
 {
     set e = ##class(Fixture.Equipo).%New()
@@ -322,7 +322,7 @@ ClassMethod NuevoJugador(equipo As Fixture.Equipo, n As %Integer, nacionalidad A
 {
     set nn = $TRANSLATE($JUSTIFY(n, 2), " ", "0")
     set j = ##class(Fixture.Jugador).%New()
-    set j.Codigo = equipo.Codigo_"-J"_nn
+    set j.Codigo = equipo.Codigo_"J"_nn
     set j.Documento = "DOC-"_j.Codigo
     set j.Nombre = "Jugador "_nn, j.Apellido = equipo.Nombre
     set j.FechaNacimiento = $ZDATEH("1994-01-15", 3) + (n * 211)
