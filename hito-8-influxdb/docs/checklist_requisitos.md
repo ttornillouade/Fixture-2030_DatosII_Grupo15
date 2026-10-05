@@ -26,7 +26,7 @@
 | RNF8 | Consultas acotadas y rendimiento con método | todas las consultas con rango; `pruebas_y_evidencia.md` |
 | RNF9 | Scripts separados por responsabilidad | `scripts/` |
 | RNF10 | Evidencia con fecha, versión, recursos y volumen | `ambiente.sh`, `carga_*.json`, `rendimiento_hito8_*.txt` |
-| RNF11 | Repositorio GitHub con historial | completar el enlace al inicio de `README.md` |
+| RNF11 | Repositorio GitHub con historial | enlace al inicio de `README.md` (https://github.com/ttornillouade/Fixture-2030_DatosII_Grupo15) |
 
 ## Pendiente del equipo antes de entregar
 
