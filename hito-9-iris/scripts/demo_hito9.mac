@@ -1,0 +1,61 @@
+// Hito 9 — Demostración por bloques en el Terminal de IRIS (docker exec -it fixture2030-iris iris session IRIS)
+// Copiar y ejecutar cada bloque en orden. Antes, compilar: do $system.OBJ.LoadDir("/scripts/Fixture","ck")
+
+// ===== 0. Limpieza (permite repetir la demo) =====
+do ##class(Fixture.Evento).%KillExtent(), ##class(Fixture.Partido).%KillExtent(), ##class(Fixture.Equipo).%KillExtent(), ##class(Fixture.Persona).%KillExtent(), ##class(Fixture.Sede).%KillExtent()
+
+// ===== A. Herencia: Jugador y Arbitro heredan de Persona (RF4) =====
+set e1 = ##class(Fixture.Equipo).%New(), e1.Codigo = "E001", e1.Nombre = "Seleccion 001", e1.Confederacion = "CONMEBOL"
+set e2 = ##class(Fixture.Equipo).%New(), e2.Codigo = "E002", e2.Nombre = "Seleccion 002", e2.Confederacion = "UEFA"
+set j1 = ##class(Fixture.Jugador).%New(), j1.Nombre = "Jugador 09", j1.Apellido = "Seleccion 001", j1.Nacionalidad = "URY", j1.Codigo = "E001J09", j1.Dorsal = 9, j1.Posicion = "MED", j1.Equipo = e1
+set j2 = ##class(Fixture.Jugador).%New(), j2.Nombre = "Jugador 10", j2.Apellido = "Seleccion 002", j2.Nacionalidad = "ESP", j2.Codigo = "E002J10", j2.Dorsal = 10, j2.Posicion = "DEL", j2.Equipo = e2
+set a1 = ##class(Fixture.Arbitro).%New(), a1.Nombre = "Arbitro", a1.Apellido = "A01", a1.Nacionalidad = "ARG", a1.Licencia = "LIC-A01", a1.Rol = "PRINCIPAL"
+write "j1 es Persona: ", j1.%IsA("Fixture.Persona"), " | a1 es Persona: ", a1.%IsA("Fixture.Persona"), " | Nombre heredado: ", j1.Nombre, " / ", a1.Nombre
+
+// ===== B. Padre-hijo: un solo %Save del partido guarda todo el árbol (RF6) =====
+set s1 = ##class(Fixture.Sede).%New(), s1.Codigo = "S01", s1.Estadio = "Estadio Centenario", s1.Capacidad = 60235
+set s1.Ubicacion.Calle = "Av. Dr. Americo Ricaldoni", s1.Ubicacion.Ciudad = "Montevideo", s1.Ubicacion.Pais = "URY"
+set p = ##class(Fixture.Partido).%New(), p.Codigo = "P001", p.FechaHora = "2030-06-08 16:00:00", p.Sede = s1, p.EquipoLocal = e1, p.EquipoVisitante = e2, p.Arbitro = a1
+write "Iniciar: ", p.Iniciar(), " | estado: ", p.Estado
+write "Gol: ", p.RegistrarEvento("GOL", 23, j1), " | Amarilla: ", p.RegistrarEvento("TARJETA_AMARILLA", 31, j2), " | eventos en memoria: ", p.Eventos.Count()
+write "Antes de guardar -> partido: '", p.%Id(), "' sede: '", s1.%Id(), "' equipo: '", e1.%Id(), "' jugador: '", j1.%Id(), "' arbitro: '", a1.%Id(), "'"
+set sc = p.%Save()  write "p.%Save(): ", $system.Status.IsOK(sc)
+write "Después -> partido: ", p.%Id(), " | sede: ", s1.%Id(), " | equipos: ", e1.%Id(), ",", e2.%Id(), " | jugadores: ", j1.%Id(), ",", j2.%Id(), " | arbitro: ", a1.%Id(), " | evento: ", p.Eventos.GetAt(1).%Id()
+// Nunca se llamó %Save() sobre los eventos, la sede, los equipos ni las personas.
+
+// ===== C. Proyección SQL: los mismos datos como tablas (RF8) =====
+do ##class(%SQL.Statement).%ExecDirect(, "SELECT ID, Nombre, Apellido, Nacionalidad FROM Fixture.Persona").%Display()
+do ##class(%SQL.Statement).%ExecDirect(, "SELECT e.ID, e.Partido->Codigo AS Partido, e.Minuto, e.Tipo, e.Jugador->Codigo AS Jugador FROM Fixture.Evento e ORDER BY e.Minuto").%Display()
+do ##class(%SQL.Statement).%ExecDirect(, "SELECT Codigo, Estadio, Ubicacion_Ciudad, Ubicacion_Pais FROM Fixture.Sede").%Display()
+
+// ===== D. Navegación: abrir por ID y recorrer referencias, sin SQL (RF7) =====
+set id = p.%Id()  kill p, s1, e1, e2, j1, j2, a1
+set p = ##class(Fixture.Partido).%OpenId(id)
+set ev = p.Eventos.GetAt(1)  write "Primer evento: ", ev.Tipo, " minuto ", ev.Minuto, " | jugador ", ev.Jugador.Codigo, " | su equipo: ", ev.Jugador.Equipo.Nombre
+write "Partido ", p.Codigo, " en ", p.Sede.Estadio, " (", p.Sede.Ubicacion.Ciudad, ") | ", p.EquipoLocal.Nombre, " vs ", p.EquipoVisitante.Nombre, " | árbitro ", p.Arbitro.Apellido
+write "Navegación inversa -> evento a su partido: ", ev.Partido.Codigo, " | equipo local a sus jugadores: ", p.EquipoLocal.Jugadores.Count()
+
+// ===== E. Falla controlada: falta una propiedad [Required] (RF5) =====
+set x = ##class(Fixture.Jugador).%New(), x.Nombre = "Sin", x.Apellido = "Dorsal", x.Nacionalidad = "URY", x.Codigo = "E001J99", x.Posicion = "DEF"
+set sc = x.%Save()  write "x.%Save(): ", $system.Status.IsOK(sc), !  do $system.Status.DisplayError(sc)
+set rs = ##class(%SQL.Statement).%ExecDirect(, "SELECT COUNT(*) AS n FROM Fixture.Jugador")  do rs.%Next()  write "Jugadores en la base: ", rs.n, " (el inválido no se guardó)"
+
+// ===== F. Transición ilegal: evento en el minuto 0 en un partido FINALIZADO (RF9) =====
+write "Finalizar: ", p.Finalizar(), " | estado: ", p.Estado, " | guardado: ", $system.Status.IsOK(p.%Save())
+set sc = p.RegistrarEvento("GOL", 0, ev.Jugador)  do $system.Status.DisplayError(sc)
+set sc = p.Iniciar()  do $system.Status.DisplayError(sc)
+write "Eventos de P001: ", p.Eventos.Count(), " (sin cambios) | estado: ", p.Estado
+
+// ===== G. Integridad al borrar =====
+// Padre-hijo: borrar un partido borra sus eventos.
+set p2 = ##class(Fixture.Partido).%New(), p2.Codigo = "P002", p2.FechaHora = "2030-06-12 19:00:00", p2.Sede = p.Sede, p2.EquipoLocal = p.EquipoVisitante, p2.EquipoVisitante = p.EquipoLocal, p2.Arbitro = p.Arbitro
+write "P002 iniciar: ", p2.Iniciar(), " | gol: ", p2.RegistrarEvento("GOL", 10, ev.Jugador), " | guardado: ", $system.Status.IsOK(p2.%Save())
+set rs = ##class(%SQL.Statement).%ExecDirect(, "SELECT COUNT(*) AS n FROM Fixture.Evento")  do rs.%Next()  write "Eventos en la base: ", rs.n
+set id2 = p2.%Id()  kill p2  write "Borrar P002: ", $system.Status.IsOK(##class(Fixture.Partido).%DeleteId(id2))
+set rs = ##class(%SQL.Statement).%ExecDirect(, "SELECT COUNT(*) AS n FROM Fixture.Evento")  do rs.%Next()  write "Eventos en la base: ", rs.n, " (el evento de P002 se borró en cascada)"
+// Uno a muchos: borrar un equipo no borra a sus jugadores (OnDelete = setnull).
+set e9 = ##class(Fixture.Equipo).%New(), e9.Codigo = "E099", e9.Nombre = "Seleccion 099", e9.Confederacion = "OFC"
+set j9 = ##class(Fixture.Jugador).%New(), j9.Nombre = "Jugador 01", j9.Apellido = "Seleccion 099", j9.Nacionalidad = "NZL", j9.Codigo = "E099J01", j9.Dorsal = 1, j9.Posicion = "ARQ", j9.Equipo = e9
+write "Guardar E099 con un jugador: ", $system.Status.IsOK(e9.%Save())
+set ide = e9.%Id(), idj = j9.%Id()  kill e9, j9  write "Borrar E099: ", $system.Status.IsOK(##class(Fixture.Equipo).%DeleteId(ide))
+set j9 = ##class(Fixture.Jugador).%OpenId(idj)  write "El jugador sigue existiendo: ", $isobject(j9), " | su equipo ahora: '", j9.Equipo, "'"

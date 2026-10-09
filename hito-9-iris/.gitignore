@@ -1,11 +1,9 @@
-# Secretos y configuración local
+# Archivos locales con secretos
 .env
 
-# Datos de IRIS: viven en ~/docker/data/iris, nunca en el repositorio.
-# Por si alguien monta la carpeta dentro del proyecto:
+# Los datos de IRIS (Durable %SYS) viven en ~/docker/data/iris, nunca en el repositorio.
 durable/
 *.DAT
-*.dat
 iris.cpf*
 journal/
 
