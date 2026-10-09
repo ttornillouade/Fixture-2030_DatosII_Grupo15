@@ -1,3 +1,6 @@
+# Archivos locales con secretos
+.env
+
 # Los datos de IRIS (Durable %SYS) viven en ~/docker/data/iris, nunca en el repositorio.
 durable/
 *.DAT
