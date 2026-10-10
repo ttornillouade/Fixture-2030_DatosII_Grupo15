@@ -1,0 +1,20 @@
+meta {
+  name: GET ventana sin puntos: 200 con lista vacia
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/estadisticas?desde=2026-10-01T10:00:00Z&hasta=2026-10-01T10:10:00Z
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("lista vacia, no error", function() {
+    expect(res.getBody().puntos.length).to.equal(0);
+  });
+}

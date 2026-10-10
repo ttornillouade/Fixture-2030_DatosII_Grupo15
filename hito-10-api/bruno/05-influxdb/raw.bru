@@ -1,0 +1,17 @@
+meta {
+  name: GET estadisticas crudas (ventana de 10 min)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/estadisticas?desde={{desde}}&hasta={{hasta}}&agregacion=raw
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

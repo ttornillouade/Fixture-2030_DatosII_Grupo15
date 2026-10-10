@@ -1,0 +1,194 @@
+PRUEBAS API REST INTEGRADA — FIXTURE 2030 — 2026-10-09 21:33:41 -03
+Entorno: API en la notebook (Darwin arm64), bases en Docker 29.5.3, TIMEOUT_S=3
+
+========== 1. Conectividad ==========
+OK     MongoDB   (fixture2030-mongodb, fixture2030)
+OK     Neo4j     (fixture2030-neo4j)
+OK     Cassandra (fixture2030-cassandra, fixture2030_comments)
+OK     Redis     (fixture2030-redis)
+OK     InfluxDB  (http://localhost:8181, fixture2030_vivo)
+OK     IRIS      (fixture2030-iris, USER)
+
+========== 2. Contrato OpenAPI vs. código ==========
+OK: openapi/openapi.yaml coincide con las rutas implementadas
+
+========== 3. Colección Bruno ==========
+OK contraseña de _SYSTEM aplicada
+OK P003 en PROGRAMADO
+01-mongodb/equipo (200 OK) - 15 ms
+Tests
+   ✓ responde 200
+01-mongodb/equipo-inexistente (404 Not Found) - 4 ms
+Tests
+   ✓ responde 404
+01-mongodb/equipo-codigo-invalido (400 Bad Request) - 1 ms
+Tests
+   ✓ responde 400
+01-mongodb/plantel (200 OK) - 6 ms
+Tests
+   ✓ responde 200
+   ✓ trae cursor para la pagina siguiente
+01-mongodb/plantel-siguiente (200 OK) - 3 ms
+Tests
+   ✓ responde 200
+01-mongodb/plantel-sin-equipo (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+01-mongodb/plantel-vacio (200 OK) - 3 ms
+Tests
+   ✓ responde 200
+   ✓ lista vacia, no error
+02-neo4j/eventos-partido (200 OK) - 52 ms
+Tests
+   ✓ responde 200
+02-neo4j/eventos-inexistente (404 Not Found) - 13 ms
+Tests
+   ✓ responde 404
+02-neo4j/eventos-codigo-invalido (400 Bad Request) - 1 ms
+Tests
+   ✓ responde 400
+03-cassandra/pagina (200 OK) - 27 ms
+Tests
+   ✓ responde 200
+03-cassandra/siguiente-pagina (200 OK) - 9 ms
+Tests
+   ✓ responde 200
+03-cassandra/sin-bucket (400 Bad Request) - 1 ms
+Tests
+   ✓ responde 400
+03-cassandra/bucket-desalineado (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+03-cassandra/crear (201 Created) - 15 ms
+Tests
+   ✓ responde 201
+03-cassandra/crear-repetido (201 Created) - 7 ms
+Tests
+   ✓ responde 201
+   ✓ genera otro comentarioId
+03-cassandra/crear-vacio (400 Bad Request) - 1 ms
+Tests
+   ✓ responde 400
+04-redis/crear (201 Created) - 6 ms
+Tests
+   ✓ responde 201
+04-redis/obtener (200 OK) - 4 ms
+Tests
+   ✓ responde 200
+04-redis/eliminar (204 No Content) - 3 ms
+Tests
+   ✓ responde 204
+04-redis/obtener-eliminada (404 Not Found) - 2 ms
+Tests
+   ✓ responde 404
+05-influxdb/raw (200 OK) - 43 ms
+Tests
+   ✓ responde 200
+05-influxdb/por-minuto (200 OK) - 8 ms
+Tests
+   ✓ responde 200
+05-influxdb/ventana-excedida (400 Bad Request) - 3 ms
+Tests
+   ✓ responde 400
+05-influxdb/rango-invertido (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+05-influxdb/ventana-sin-puntos (200 OK) - 9 ms
+Tests
+   ✓ responde 200
+   ✓ lista vacia, no error
+06-iris/detalle (200 OK) - 8 ms
+Tests
+   ✓ responde 200
+06-iris/iniciar (200 OK) - 4 ms
+Tests
+   ✓ responde 200
+06-iris/iniciar-de-nuevo (409 Conflict) - 3 ms
+Tests
+   ✓ responde 409
+06-iris/finalizar (200 OK) - 3 ms
+Tests
+   ✓ responde 200
+06-iris/estado-invalido (400 Bad Request) - 1 ms
+Tests
+   ✓ responde 400
+06-iris/inexistente (404 Not Found) - 1 ms
+Tests
+   ✓ responde 404
+
+📊 Execution Summary
+┌───────────────┬────────────────┐
+│ Metric        │     Result     │
+├───────────────┼────────────────┤
+│ Status        │     ✓ PASS     │
+├───────────────┼────────────────┤
+│ Requests      │ 32 (32 Passed) │
+├───────────────┼────────────────┤
+│ Tests         │     36/36      │
+├───────────────┼────────────────┤
+│ Assertions    │      0/0       │
+├───────────────┼────────────────┤
+│ Duration (ms) │      1735      │
+└───────────────┴────────────────┘
+
+========== 4. Contraste con el cliente nativo de cada base ==========
+--- MongoDB: GET /equipos/E010
+{"codigo":"E010","nombre":"Seleccion 010","pais":"Pais 010","confederacion":"AFC","grupo":"C"}
+{
+  _id: 'E010',
+  confederacion: 'AFC',
+  grupo: 'C',
+  nombre: 'Seleccion 010'
+}
+--- Neo4j: GET /partidos/P001/eventos
+{"partidoCodigo":"P001","eventos":[{"tipo":"Gol","minuto":33,"jugadorCodigo":"E001-J09"},{"tipo":"TarjetaAmarilla","minuto":50,"jugadorCodigo":"E002-J14"},{"tipo":"Cambio","minuto":67,"jugadorCodigo":"E001-J01"},{"tipo":"Gol","minuto":84,"jugadorCodigo":"E002-J06"}]}
+e.tipo, e.minuto, j.id
+"Gol", 33, "E001-J09"
+"TarjetaAmarilla", 50, "E002-J14"
+"Cambio", 67, "E001-J01"
+"Gol", 84, "E002-J06"
+--- Cassandra: GET /partidos/P001/comentarios (limit=2)
+{"partidoCodigo":"P001","bucket":"2030-06-08T20:00:00Z","items":[{"comentarioId":"C001098298","partidoCodigo":"P001","usuarioId":"U048298","texto":"Comentario sintetico 1098298 sobre P001","creadoEn":"2030-06-08T20:04:57Z","estadoModeracion":"VISIBLE","reacciones":17},{"comentarioId":"C000828296","partidoCodigo":"P001","usuarioId":"U028296","texto":"Comentario sintetico 828296 sobre P001","creadoEn":"2030-06-08T20:04:55Z","estadoModeracion":"VISIBLE","reacciones":15}],"limit":2,"nextCursor":"MjAzMC0wNi0wOFQyMDowNDo1NSswMDowMHxDMDAwODI4Mjk2"}
+PAGING set to OFF
+
+ comentario_id | creado_en
+---------------+---------------------------------
+    C001098298 | 2030-06-08 20:04:57.000000+0000
+    C000828296 | 2030-06-08 20:04:55.000000+0000
+
+(2 rows)
+--- Redis: sesión creada por la API, leída con redis-cli
+{"sesionId":"LiUr_30qf9ukGMcF9eK2yJ2p","usuarioId":"U000042","estado":"AUTHENTICATED","locale":"es-AR","creadaEn":"2026-10-10T00:33:50+00:00","expiraEnSegundos":1800}
+U000042
+1800
+--- InfluxDB: GET /partidos/P001/estadisticas (3 s)
+{"partidoCodigo":"P001","desde":"2026-10-04T14:00:00Z","hasta":"2026-10-04T14:00:03Z","agregacion":"raw","puntos":[{"time":"2026-10-04T14:00:00.199000Z","equipoId":"E001","posesionPct":100.0,"pasesCompletados":1,"tiros":0},{"time":"2026-10-04T14:00:00.207000Z","equipoId":"E002","posesionPct":0.0,"pasesCompletados":0,"tiros":0},{"time":"2026-10-04T14:00:01.046000Z","equipoId":"E002","posesionPct":0.0,"pasesCompletados":0,"tiros":0},{"time":"2026-10-04T14:00:01.138000Z","equipoId":"E001","posesionPct":100.0,"pasesCompletados":1,"tiros":0},{"time":"2026-10-04T14:00:02.029000Z","equipoId":"E002","posesionPct":0.0,"pasesCompletados":0,"tiros":0},{"time":"2026-10-04T14:00:02.124000Z","equipoId":"E001","posesionPct":100.0,"pasesCompletados":1,"tiros":0}]}
++-------------------------+-----------+--------------+
+| time                    | equipo_id | posesion_pct |
++-------------------------+-----------+--------------+
+| 2026-10-04T14:00:00.199 | E001      | 100.0        |
+| 2026-10-04T14:00:00.207 | E002      | 0.0          |
+| 2026-10-04T14:00:01.046 | E002      | 0.0          |
+| 2026-10-04T14:00:01.138 | E001      | 100.0        |
+| 2026-10-04T14:00:02.029 | E002      | 0.0          |
+| 2026-10-04T14:00:02.124 | E001      | 100.0        |
++-------------------------+-----------+--------------+
+--- IRIS: GET /partidos/P003/detalle
+{"codigo":"P003","estado":"FINALIZADO","fechaHora":"2030-06-10 18:00:00","sede":"Estadio Centenario","ciudad":"Montevideo","equipoLocal":"E002","equipoVisitante":"E001","cantidadEventos":0}
+Codigo	Estado
+P003	FINALIZADO
+1 Rows(s) Affected
+
+========== 5. Dependencia caída (Neo4j detenido; sus datos están en un volumen) ==========
+{"code":"DEPENDENCY_UNAVAILABLE","message":"La fuente Neo4j no está disponible en este momento","requestId":"req-b9ddee1c1f82"}
+-> HTTP 503 en 0.003014s
+Otra fuente durante la caída: GET /equipos/E010 -> HTTP 200
+Neo4j levantado de nuevo -> HTTP 200, sin reiniciar la API
+
+========== 6. Latencia básica (20 requests secuenciales por endpoint, cliente curl en la misma notebook) ==========
+/equipos/E010                                                                                   mediana=  1.3 ms  p95=  2.3 ms  max=  2.4 ms
+/jugadores?equipoCodigo=E010&posicion=Delantero                                                 mediana=  1.4 ms  p95=  1.8 ms  max=  2.2 ms
+/partidos/P001/eventos                                                                          mediana=  5.3 ms  p95= 13.0 ms  max= 17.1 ms
+/partidos/P001/comentarios?bucket=2030-06-08T20:00:00Z&limit=20                                 mediana=  3.5 ms  p95=  4.8 ms  max=  7.8 ms
+/partidos/P001/estadisticas?desde=2026-10-04T14:00:00Z&hasta=2026-10-04T14:10:00Z&agregacion=minuto mediana=  4.0 ms  p95=  8.1 ms  max= 10.7 ms
+/partidos/P003/detalle                                                                          mediana=  1.1 ms  p95=  1.5 ms  max=  1.8 ms

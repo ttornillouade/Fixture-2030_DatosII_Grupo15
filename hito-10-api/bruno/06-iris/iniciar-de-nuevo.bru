@@ -1,0 +1,23 @@
+meta {
+  name: PATCH P003 EN_JUEGO -> EN_JUEGO, transicion ilegal (409)
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/partidos/{{partidoProgramado}}/estado
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "estado": "EN_JUEGO"
+  }
+}
+
+tests {
+  test("responde 409", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+}

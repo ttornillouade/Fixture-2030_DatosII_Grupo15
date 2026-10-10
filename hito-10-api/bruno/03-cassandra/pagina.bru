@@ -1,0 +1,21 @@
+meta {
+  name: GET primera pagina de comentarios
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/comentarios?bucket={{bucket}}&limit=5
+  body: none
+  auth: none
+}
+
+script:post-response {
+  bru.setVar("cursor", res.getBody().nextCursor);
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
