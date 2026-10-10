@@ -1,0 +1,17 @@
+meta {
+  name: GET ventana cruda de 2 horas (400)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/estadisticas?desde=2026-10-04T14:00:00Z&hasta=2026-10-04T16:00:00Z&agregacion=raw
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

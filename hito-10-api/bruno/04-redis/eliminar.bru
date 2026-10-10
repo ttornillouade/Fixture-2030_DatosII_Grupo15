@@ -1,0 +1,17 @@
+meta {
+  name: DELETE invalidar sesion
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/sesiones/{{sesionId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

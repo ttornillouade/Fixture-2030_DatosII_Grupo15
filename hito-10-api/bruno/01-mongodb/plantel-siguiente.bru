@@ -1,0 +1,17 @@
+meta {
+  name: GET delanteros de E010, pagina 2
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/jugadores?equipoCodigo={{equipo}}&posicion=Delantero&limit=3&cursor={{cursorJugadores}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

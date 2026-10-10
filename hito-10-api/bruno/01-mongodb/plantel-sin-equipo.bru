@@ -1,0 +1,17 @@
+meta {
+  name: GET jugadores sin equipoCodigo (400)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/jugadores?posicion=Delantero
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}
