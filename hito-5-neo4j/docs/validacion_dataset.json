@@ -1,0 +1,12 @@
+{
+  "equipos": 64,
+  "jugadores": 1536,
+  "partidos": 127,
+  "sedes": 6,
+  "eventos": 508,
+  "participaciones": 4572,
+  "ids_equipos_unicos": true,
+  "ids_jugadores_unicos": true,
+  "ids_partidos_unicos": true,
+  "ids_eventos_unicos": true
+}
