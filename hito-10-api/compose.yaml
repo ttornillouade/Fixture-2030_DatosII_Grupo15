@@ -1,0 +1,77 @@
+# Fixture 2030 — las cuatro bases de la API, con un solo comando:
+#   bash scripts/levantar_todo.sh        (o: docker compose up -d --wait)
+# La API corre en la notebook (scripts/iniciar_api.sh) y llega a las bases por localhost.
+# Los datos persisten en ~/docker/data/<base> (los mismos directorios de cada hito).
+# Los scripts de inicialización se montan desde las carpetas de los hitos 4, 5 y 6.
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: fixture2030-mongodb
+    restart: unless-stopped
+    ports: ["127.0.0.1:27017:27017"]
+    volumes:
+      - ${HOME}/docker/data/mongodb:/data/db
+      - ../hito-4-mongodb/scripts:/scripts:ro
+      - ../hito-4-mongodb/data:/data/import:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:latest
+    container_name: fixture2030-redis
+    restart: unless-stopped
+    ports: ["127.0.0.1:6379:6379"]
+    # Configuración del Hito 7: persistencia AOF y límite de memoria sin desalojo.
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec",
+              "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - ${HOME}/docker/data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  cassandra:
+    image: cassandra:latest
+    container_name: fixture2030-cassandra
+    restart: unless-stopped
+    ports: ["127.0.0.1:9042:9042"]
+    # Mismo cluster y datacenter que el Hito 6: Cassandra no arranca si cambian sobre datos existentes.
+    environment:
+      CASSANDRA_CLUSTER_NAME: Fixture2030Local
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_RACK: rack1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+    volumes:
+      - ${HOME}/docker/data/cassandra:/var/lib/cassandra
+      - ../Grupo_15_Hito_6_Cassandra_Fixture2030_FINAL/scripts:/scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' > /dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+
+  neo4j:
+    image: neo4j:latest
+    container_name: fixture2030-neo4j
+    restart: unless-stopped
+    ports: ["127.0.0.1:7474:7474", "127.0.0.1:7687:7687"]
+    # Solo NEO4J_AUTH: la imagen convierte toda variable NEO4J_* en un setting y rechaza las desconocidas.
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?Definir NEO4J_PASSWORD en .env}
+    volumes:
+      - ${HOME}/docker/data/neo4j:/data
+      # Sin :ro: neo4j:latest cambia el dueño de import/ al arrancar.
+      - ../hito-5-neo4j/import:/var/lib/neo4j/import
+      - ../hito-5-neo4j/queries:/queries:ro
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p \"$${NEO4J_AUTH#neo4j/}\" 'RETURN 1' > /dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
