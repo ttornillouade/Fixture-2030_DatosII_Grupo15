@@ -1,18 +1,18 @@
 meta {
-  name: PATCH P003 EN_JUEGO -> EN_JUEGO, transicion ilegal (409)
+  name: PATCH P128 PROGRAMADO -> FINALIZADO, saltea EN_JUEGO (409)
   type: http
-  seq: 3
+  seq: 4
 }
 
 patch {
-  url: {{baseUrl}}/partidos/{{partidoProgramado}}/estado
+  url: {{baseUrl}}/partidos/{{partidoPrueba}}/estado
   body: json
   auth: none
 }
 
 body:json {
   {
-    "estado": "EN_JUEGO"
+    "estado": "FINALIZADO"
   }
 }
 

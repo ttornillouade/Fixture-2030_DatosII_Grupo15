@@ -1,18 +1,18 @@
 meta {
-  name: PATCH P003 EN_JUEGO -> FINALIZADO
+  name: PATCH P128 PROGRAMADO -> EN_JUEGO
   type: http
-  seq: 4
+  seq: 5
 }
 
 patch {
-  url: {{baseUrl}}/partidos/{{partidoProgramado}}/estado
+  url: {{baseUrl}}/partidos/{{partidoPrueba}}/estado
   body: json
   auth: none
 }
 
 body:json {
   {
-    "estado": "FINALIZADO"
+    "estado": "EN_JUEGO"
   }
 }
 

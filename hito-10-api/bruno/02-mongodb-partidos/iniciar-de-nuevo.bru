@@ -1,0 +1,23 @@
+meta {
+  name: PATCH P128 EN_JUEGO -> EN_JUEGO, repetido (409)
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/partidos/{{partidoPrueba}}/estado
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "estado": "EN_JUEGO"
+  }
+}
+
+tests {
+  test("responde 409", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+}
