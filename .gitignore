@@ -1,0 +1,11 @@
+# Archivos de sistema de macOS
+.DS_Store
+__MACOSX/
+
+# Variables de entorno locales (cada módulo trae su .env.example como plantilla)
+.env
+
+# Entornos y cachés de Python
+.venv/
+__pycache__/
+*.pyc
