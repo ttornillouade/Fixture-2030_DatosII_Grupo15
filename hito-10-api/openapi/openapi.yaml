@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Fixture 2030 API
-  description: API REST que integra MongoDB, Neo4j, Cassandra, Redis, InfluxDB e IRIS.
+  description: API REST del Fixture 2030 sobre MongoDB, Redis, Cassandra y Neo4j.
     Cada endpoint consulta una sola base, respetando su modelo de acceso.
   version: 1.0.0
 servers:
@@ -123,53 +123,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /partidos/{codigo}/eventos:
-    get:
-      tags:
-      - Neo4j
-      summary: Eventos conectados con un partido en el grafo
-      operationId: eventos_partidos__codigo__eventos_get
-      parameters:
-      - name: codigo
-        in: path
-        required: true
-        schema:
-          type: string
-          pattern: ^P[0-9]{3}$
-          description: Código de partido
-          examples:
-          - P001
-          title: Codigo
-        description: Código de partido
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventosPartido'
-        '400':
-          description: La request no cumple el contrato
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Recurso inexistente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '503':
-          description: La fuente de datos no está disponible
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /partidos/{codigo}/detalle:
     get:
       tags:
-      - IRIS
+      - MongoDB
       summary: Detalle del partido (entidad compleja)
       operationId: detalle_partidos__codigo__detalle_get
       parameters:
@@ -212,10 +169,12 @@ paths:
   /partidos/{codigo}/estado:
     patch:
       tags:
-      - IRIS
+      - MongoDB
       summary: Transición validada del estado del partido
-      description: 'Invoca Fixture.Partido.CambiarEstado (Iniciar/Finalizar): una
-        transición ilegal devuelve 409.'
+      description: 'PROGRAMADO -> EN_JUEGO -> FINALIZADO. Es un update condicionado
+        al estado de origen:
+
+        una transición ilegal, o repetida, devuelve 409 sin modificar el partido.'
       operationId: cambiar_estado_partidos__codigo__estado_patch
       parameters:
       - name: codigo
@@ -256,6 +215,118 @@ paths:
                 $ref: '#/components/schemas/Error'
         '409':
           description: La operación no está permitida por el estado actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /partidos/{codigo}/estadisticas:
+    get:
+      tags:
+      - MongoDB
+      summary: Estadísticas por equipo en una ventana temporal (colección time series)
+      description: 'Ventana máxima: 15 minutos en raw (1 punto por segundo y equipo)
+        y 3 horas por minuto.
+
+        Una ventana sin puntos devuelve 200 con la lista vacía.'
+      operationId: obtener_estadisticas_partidos__codigo__estadisticas_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P[0-9]{3}$
+          description: Código de partido
+          examples:
+          - P001
+          title: Codigo
+        description: Código de partido
+      - name: desde
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          examples:
+          - '2030-06-08T16:00:00Z'
+          title: Desde
+      - name: hasta
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          examples:
+          - '2030-06-08T16:10:00Z'
+          title: Hasta
+      - name: agregacion
+        in: query
+        required: false
+        schema:
+          enum:
+          - raw
+          - minuto
+          type: string
+          default: raw
+          title: Agregacion
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Estadisticas'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /jugadores/{codigo}/partidos:
+    get:
+      tags:
+      - Neo4j
+      summary: Partidos que jugó un jugador y contra qué rival (recorrido del grafo)
+      operationId: partidos_de_jugador_jugadores__codigo__partidos_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^E[0-9]{3}-J[0-9]{2}$
+          description: Código de jugador
+          examples:
+          - E001-J09
+          title: Codigo
+        description: Código de jugador
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidosDeJugador'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Recurso inexistente
           content:
             application/json:
               schema:
@@ -379,37 +450,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /sesiones:
-    post:
-      tags:
-      - Redis
-      summary: Crea una sesión con TTL de 30 minutos
-      operationId: crear_sesion_sesiones_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SesionEntrada'
-        required: true
-      responses:
-        '201':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Sesion'
-        '400':
-          description: La request no cumple el contrato
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '503':
-          description: La fuente de datos no está disponible
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /sesiones/{sesionId}:
     get:
       tags:
@@ -478,76 +518,6 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: Recurso inexistente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '503':
-          description: La fuente de datos no está disponible
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /partidos/{codigo}/estadisticas:
-    get:
-      tags:
-      - InfluxDB
-      summary: Estadísticas por equipo en una ventana temporal
-      description: 'Ventana máxima: 15 minutos en raw (1 punto por segundo y equipo)
-        y 3 horas por minuto.
-
-        Una ventana sin puntos devuelve 200 con la lista vacía: InfluxDB no conoce
-        el partido, solo observaciones.'
-      operationId: obtener_estadisticas_partidos__codigo__estadisticas_get
-      parameters:
-      - name: codigo
-        in: path
-        required: true
-        schema:
-          type: string
-          pattern: ^P[0-9]{3}$
-          description: Código de partido
-          examples:
-          - P001
-          title: Codigo
-        description: Código de partido
-      - name: desde
-        in: query
-        required: true
-        schema:
-          type: string
-          format: date-time
-          examples:
-          - '2026-10-04T14:00:00Z'
-          title: Desde
-      - name: hasta
-        in: query
-        required: true
-        schema:
-          type: string
-          format: date-time
-          examples:
-          - '2026-10-04T14:10:00Z'
-          title: Hasta
-      - name: agregacion
-        in: query
-        required: false
-        schema:
-          enum:
-          - raw
-          - minuto
-          type: string
-          default: raw
-          title: Agregacion
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Estadisticas'
-        '400':
-          description: La request no cumple el contrato
           content:
             application/json:
               schema:
@@ -705,39 +675,6 @@ components:
       - agregacion
       - puntos
       title: Estadisticas
-    EventoGrafo:
-      properties:
-        tipo:
-          type: string
-          title: Tipo
-        minuto:
-          type: integer
-          title: Minuto
-        jugadorCodigo:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Jugadorcodigo
-      type: object
-      required:
-      - tipo
-      - minuto
-      title: EventoGrafo
-    EventosPartido:
-      properties:
-        partidoCodigo:
-          type: string
-          title: Partidocodigo
-        eventos:
-          items:
-            $ref: '#/components/schemas/EventoGrafo'
-          type: array
-          title: Eventos
-      type: object
-      required:
-      - partidoCodigo
-      - eventos
-      title: EventosPartido
     Jugador:
       properties:
         codigo:
@@ -832,7 +769,11 @@ components:
           title: Estado
         fechaHora:
           type: string
+          format: date-time
           title: Fechahora
+        fase:
+          type: string
+          title: Fase
         sede:
           type: string
           title: Sede
@@ -853,12 +794,55 @@ components:
       - codigo
       - estado
       - fechaHora
+      - fase
       - sede
       - ciudad
       - equipoLocal
       - equipoVisitante
       - cantidadEventos
       title: PartidoDetalle
+    PartidoJugado:
+      properties:
+        partidoCodigo:
+          type: string
+          title: Partidocodigo
+        fecha:
+          type: string
+          title: Fecha
+        fase:
+          type: string
+          title: Fase
+        titular:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Titular
+        rivalCodigo:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Rivalcodigo
+      type: object
+      required:
+      - partidoCodigo
+      - fecha
+      - fase
+      title: PartidoJugado
+    PartidosDeJugador:
+      properties:
+        jugadorCodigo:
+          type: string
+          title: Jugadorcodigo
+        partidos:
+          items:
+            $ref: '#/components/schemas/PartidoJugado'
+          type: array
+          title: Partidos
+      type: object
+      required:
+      - jugadorCodigo
+      - partidos
+      title: PartidosDeJugador
     PuntoEstadistica:
       properties:
         time:
@@ -919,20 +903,3 @@ components:
       - estado
       - expiraEnSegundos
       title: Sesion
-    SesionEntrada:
-      properties:
-        usuarioId:
-          type: string
-          pattern: ^U[0-9]{6}$
-          title: Usuarioid
-          examples:
-          - U000042
-        locale:
-          type: string
-          pattern: ^[a-z]{2}-[A-Z]{2}$
-          title: Locale
-          default: es-AR
-      type: object
-      required:
-      - usuarioId
-      title: SesionEntrada

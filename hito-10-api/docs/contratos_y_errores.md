@@ -12,6 +12,7 @@ versionado coincida con las rutas implementadas.
 |---|---|
 | `codigo` de partido | `^P[0-9]{3}$` |
 | `codigo` / `equipoCodigo` de equipo | `^E[0-9]{3}$`; `equipoCodigo` es obligatorio en `/jugadores` |
+| `codigo` de jugador | `^E[0-9]{3}-J[0-9]{2}$` |
 | `posicion` | Arquero, Defensor, Mediocampista o Delantero |
 | `limit` | 1 a 100 (por defecto 20) |
 | `cursor` | El `nextCursor` recibido; si no es válido → 400 |
@@ -34,20 +35,19 @@ credenciales ni trazas: el detalle técnico queda solo en el log.
 | HTTP | `code` | Cuándo |
 |---|---|---|
 | 400 | `VALIDATION_ERROR` | Parámetro, cuerpo o formato inválido |
-| 404 | `TEAM_NOT_FOUND`, `MATCH_NOT_FOUND`, `SESSION_EXPIRED_OR_NOT_FOUND` | Recurso inexistente o sesión expirada |
+| 404 | `TEAM_NOT_FOUND`, `MATCH_NOT_FOUND`, `PLAYER_NOT_FOUND`, `SESSION_EXPIRED_OR_NOT_FOUND` | Recurso inexistente o sesión expirada |
 | 409 | `ILLEGAL_TRANSITION` | El estado actual del partido no permite la transición |
 | 503 | `DEPENDENCY_UNAVAILABLE` | La base no respondió dentro de `TIMEOUT_S` (3 s), está caída o rechazó las credenciales |
 | 500 | `INTERNAL_ERROR` | Error no previsto |
 
-**Vacío no es error:** una ventana sin observaciones (InfluxDB), un bucket sin comentarios o un
-plantel vacío devuelven 200 con la lista vacía. Si la base falla, la respuesta es 503: nunca un 200 vacío.
+**Vacío no es error:** una ventana sin observaciones, un bucket sin comentarios o un plantel vacío
+devuelven 200 con la lista vacía. Si la base falla, la respuesta es 503: nunca un 200 vacío.
 
 ## Lectura, escritura e idempotencia
 
 | Endpoint | Tipo | Si se repite |
 |---|---|---|
 | Todos los `GET` | Lectura | Sin efectos |
-| `POST /partidos/{codigo}/comentarios` | Creación | **No es idempotente:** cada request crea un comentario con id y fecha nuevos. Un reintento por respuesta perdida duplica el comentario (lo muestra la prueba `crear-repetido`). Decisión: se acepta, porque un comentario duplicado es visible y moderable; la mejora sería una clave `Idempotency-Key` guardada en Redis con TTL. La escritura en las 2 tablas es atómica (batch `LOGGED`): no quedan a medias |
-| `POST /sesiones` | Creación | Crea otra sesión con otro id; las anteriores vencen solas por TTL |
+| `POST /partidos/{codigo}/comentarios` | Creación | **No es idempotente:** cada request crea un comentario con id y fecha nuevos. Un reintento por respuesta perdida duplica el comentario (prueba `crear-repetido`). Se acepta porque un comentario duplicado es visible y moderable; la mejora propuesta es una `Idempotency-Key` guardada en Redis. La escritura en las 2 tablas es atómica (batch `LOGGED`): no quedan a medias |
 | `DELETE /sesiones/{id}` | Invalidación | El efecto es idempotente: la segunda vez la sesión ya no existe y responde 404 |
-| `PATCH /partidos/{codigo}/estado` | Actualización | Repetir la misma transición responde 409 (`EN_JUEGO → EN_JUEGO` no es válido): no hay doble efecto. La transición y su guardado ocurren en IRIS en una sola operación |
+| `PATCH /partidos/{codigo}/estado` | Actualización | Repetir la misma transición responde 409 (`EN_JUEGO → EN_JUEGO` no es válido): no hay doble efecto. Es un único `update` condicionado al estado de origen, atómico en el documento: dos requests simultáneas no pueden aplicar la misma transición dos veces |

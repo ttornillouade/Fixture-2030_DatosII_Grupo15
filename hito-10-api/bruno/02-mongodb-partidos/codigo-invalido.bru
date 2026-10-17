@@ -1,0 +1,17 @@
+meta {
+  name: GET codigo de partido invalido (400)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/partidos/NO-EXISTE/detalle
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

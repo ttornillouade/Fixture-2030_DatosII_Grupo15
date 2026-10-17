@@ -1,0 +1,17 @@
+meta {
+  name: GET jugador inexistente (404)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/jugadores/E999-J01/partidos
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 404", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

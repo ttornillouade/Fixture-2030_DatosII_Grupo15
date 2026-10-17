@@ -1,0 +1,23 @@
+meta {
+  name: PATCH P128 PROGRAMADO -> FINALIZADO, saltea EN_JUEGO (409)
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/partidos/{{partidoPrueba}}/estado
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "estado": "FINALIZADO"
+  }
+}
+
+tests {
+  test("responde 409", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+}

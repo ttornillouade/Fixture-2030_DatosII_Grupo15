@@ -1,0 +1,21 @@
+meta {
+  name: GET partidos de E001-J09 y sus rivales
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/jugadores/{{jugador}}/partidos
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("trae partidos con rival", function() {
+    expect(res.getBody().partidos.length).to.be.above(0);
+    expect(res.getBody().partidos[0].rivalCodigo).to.not.equal(null);
+  });
+}

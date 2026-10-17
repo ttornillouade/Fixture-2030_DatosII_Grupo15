@@ -1,23 +1,20 @@
 #!/usr/bin/env bash
 # Prepara datos de prueba para la API. Se ejecuta a mano, nunca al arrancar la API.
-#   1. IRIS: aplica IRIS_PASSWORD de .env al usuario _SYSTEM (la imagen exige cambiar la de fábrica).
-#   2. IRIS: deja el partido P003 en PROGRAMADO, para probar PATCH /partidos/P003/estado.
-# Requiere el contenedor fixture2030-iris del Hito 9 con las clases compiladas.
+#   - MongoDB: deja el partido de prueba P128 (E063 vs E064) en PROGRAMADO, para probar las
+#     transiciones de estado. Los 127 partidos del Hito 5 están FINALIZADOS.
+#   - Redis: crea la sesión de prueba s-demo-001 con el TTL del Hito 7 (30 minutos).
+# Requiere haber ejecutado scripts/cargar_datos.sh.
 set -euo pipefail
-cd "$(dirname "$0")/.."
-set -a; . ./.env; set +a
-
-docker exec -i -e IRIS_PASSWORD="$IRIS_PASSWORD" fixture2030-iris iris session IRIS -U %SYS <<'IRIS' | grep -E "^(OK|ERROR)" || true
-set p("Password") = $system.Util.GetEnviron("IRIS_PASSWORD"), p("ChangePassword") = 0
-set sc = ##class(Security.Users).Modify("_SYSTEM", .p)  write $select(sc: "OK contraseña de _SYSTEM aplicada", 1: "ERROR "_$system.Status.GetErrorText(sc)), !
-halt
-IRIS
-
-docker exec -i fixture2030-iris iris session IRIS <<'IRIS' | grep -E "^(OK|ERROR)" || true
-set base = ##class(Fixture.Partido).CodigoIdxOpen("P001")
-if '$isobject(base) write "ERROR falta P001: ejecutar la demo del Hito 9 (scripts/demo_hito9.mac)", !  halt
-do ##class(Fixture.Partido).CodigoIdxDelete("P003")
-set p = ##class(Fixture.Partido).%New(), p.Codigo = "P003", p.FechaHora = "2030-06-10 18:00:00", p.Sede = base.Sede, p.EquipoLocal = base.EquipoVisitante, p.EquipoVisitante = base.EquipoLocal, p.Arbitro = base.Arbitro
-set sc = p.%Save()  write $select(sc: "OK P003 en PROGRAMADO", 1: "ERROR "_$system.Status.GetErrorText(sc)), !
-halt
-IRIS
+docker exec fixture2030-mongodb mongosh --quiet --eval '
+const db2 = db.getSiblingDB("fixture2030");
+const base = db2.partidos.findOne({ _id: "P127" });
+if (!base) { print("ERROR falta cargar los partidos: scripts/cargar_datos.sh"); quit(1); }
+db2.partidos.replaceOne({ _id: "P128" }, {
+  fechaHora: new Date("2030-07-25T16:00:00Z"), fase: "Prueba", sede: base.sede,
+  equipoLocalId: "E063", equipoVisitanteId: "E064", estado: "PROGRAMADO", eventos: [], updatedAt: new Date()
+}, { upsert: true });
+print("OK P128 en PROGRAMADO, sin eventos");'
+docker exec fixture2030-redis redis-cli HSET fixture2030:session:s-demo-001 session_id s-demo-001 user_id U000042 \
+  created_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" access_status AUTHENTICATED locale es-AR > /dev/null
+docker exec fixture2030-redis redis-cli EXPIRE fixture2030:session:s-demo-001 1800 > /dev/null
+echo "OK sesión s-demo-001 vigente por 30 minutos"

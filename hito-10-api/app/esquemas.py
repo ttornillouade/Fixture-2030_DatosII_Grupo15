@@ -61,11 +61,6 @@ class PaginaComentarios(BaseModel):
 
 
 # --- Redis -------------------------------------------------------------------------------
-class SesionEntrada(BaseModel):
-    usuarioId: str = Field(pattern=r"^U[0-9]{6}$", examples=["U000042"])
-    locale: str = Field(default="es-AR", pattern=r"^[a-z]{2}-[A-Z]{2}$")
-
-
 class Sesion(BaseModel):
     sesionId: str
     usuarioId: str
@@ -75,7 +70,7 @@ class Sesion(BaseModel):
     expiraEnSegundos: int
 
 
-# --- InfluxDB ----------------------------------------------------------------------------
+# --- MongoDB: estadísticas temporales (Hito 8) ------------------------------------------
 class PuntoEstadistica(BaseModel):
     time: datetime
     equipoId: str
@@ -92,23 +87,12 @@ class Estadisticas(BaseModel):
     puntos: list[PuntoEstadistica]
 
 
-# --- Neo4j -------------------------------------------------------------------------------
-class EventoGrafo(BaseModel):
-    tipo: str
-    minuto: int
-    jugadorCodigo: str | None = None
-
-
-class EventosPartido(BaseModel):
-    partidoCodigo: str
-    eventos: list[EventoGrafo]
-
-
-# --- IRIS --------------------------------------------------------------------------------
+# --- MongoDB: partidos y eventos (Hito 9) ------------------------------------------------
 class PartidoDetalle(BaseModel):
     codigo: str
     estado: str
-    fechaHora: str
+    fechaHora: datetime
+    fase: str
     sede: str
     ciudad: str
     equipoLocal: str
@@ -118,3 +102,17 @@ class PartidoDetalle(BaseModel):
 
 class CambioEstado(BaseModel):
     estado: Literal["EN_JUEGO", "FINALIZADO"]
+
+
+# --- Neo4j: recorridos -------------------------------------------------------------------
+class PartidoJugado(BaseModel):
+    partidoCodigo: str
+    fecha: str
+    fase: str
+    titular: bool | None = None
+    rivalCodigo: str | None = None
+
+
+class PartidosDeJugador(BaseModel):
+    jugadorCodigo: str
+    partidos: list[PartidoJugado]

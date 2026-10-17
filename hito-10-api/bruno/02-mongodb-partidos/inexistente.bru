@@ -1,0 +1,17 @@
+meta {
+  name: GET partido inexistente (404)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/partidos/P999/detalle
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 404", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

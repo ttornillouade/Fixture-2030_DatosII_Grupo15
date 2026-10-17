@@ -1,0 +1,23 @@
+meta {
+  name: PATCH P128 EN_JUEGO -> FINALIZADO
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/partidos/{{partidoPrueba}}/estado
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "estado": "FINALIZADO"
+  }
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
