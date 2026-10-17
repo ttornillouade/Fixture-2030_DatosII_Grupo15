@@ -3,7 +3,7 @@ import base64
 import binascii
 from datetime import datetime, timedelta, timezone
 
-from app.adaptadores import cassandra, influx, iris, mongodb, neo4j_grafo, redis_sesiones
+from app.adaptadores import cassandra, mongodb, neo4j_grafo, redis_sesiones
 from app.errores import Validacion
 
 # Ventana máxima por consulta temporal: evita traer el histórico completo del partido.
@@ -15,7 +15,17 @@ def _utc(valor: datetime) -> datetime:
     return valor.replace(tzinfo=timezone.utc) if valor.tzinfo is None else valor.astimezone(timezone.utc)
 
 
-# --- MongoDB ----------------------------------------------------------------------------
+# --- MongoDB: partidos -------------------------------------------------------------------
+def detalle(partido: str) -> dict:
+    return mongodb.detalle_partido(partido)
+
+
+def cambiar_estado(partido: str, estado: str) -> dict:
+    mongodb.cambiar_estado(partido, estado)
+    return mongodb.detalle_partido(partido)
+
+
+# --- MongoDB: equipos y jugadores --------------------------------------------------------
 def equipo(codigo: str) -> dict:
     return mongodb.equipo(codigo)
 
@@ -29,6 +39,22 @@ def jugadores(equipo_codigo: str, posicion: str | None, limit: int, cursor: str 
     items, hay_mas = mongodb.jugadores(equipo_codigo, posicion, limit, despues_de)
     return {"equipoCodigo": equipo_codigo, "items": items, "limit": limit,
             "nextCursor": str(items[-1]["dorsal"]) if hay_mas and items else None}
+
+
+# --- MongoDB: estadísticas temporales ----------------------------------------------------
+def estadisticas(partido: str, desde: datetime, hasta: datetime, agregacion: str) -> dict:
+    desde, hasta = _utc(desde), _utc(hasta)
+    if desde >= hasta:
+        raise Validacion("desde debe ser anterior a hasta")
+    if hasta - desde > VENTANA_MAXIMA[agregacion]:
+        raise Validacion(f"La ventana máxima para agregacion={agregacion} es de {_VENTANA_TEXTO[agregacion]}")
+    return {"partidoCodigo": partido, "desde": desde, "hasta": hasta, "agregacion": agregacion,
+            "puntos": mongodb.estadisticas(partido, desde, hasta, agregacion)}
+
+
+# --- Neo4j: recorridos -------------------------------------------------------------------
+def partidos_de_jugador(jugador: str) -> dict:
+    return {"jugadorCodigo": jugador, "partidos": neo4j_grafo.partidos_de_jugador(jugador)}
 
 
 # --- Cassandra ---------------------------------------------------------------------------
@@ -58,40 +84,10 @@ def crear_comentario(partido: str, usuario: str, texto: str) -> dict:
     return cassandra.insertar(partido, usuario, texto.strip())
 
 
-# --- Redis -------------------------------------------------------------------------------
+# --- Redis: sesiones ---------------------------------------------------------------------
 def sesion(sesion_id: str) -> dict:
     return redis_sesiones.obtener(sesion_id)
 
 
-def crear_sesion(usuario: str, locale: str) -> dict:
-    return redis_sesiones.crear(usuario, locale)
-
-
 def eliminar_sesion(sesion_id: str) -> None:
     redis_sesiones.eliminar(sesion_id)
-
-
-# --- InfluxDB ----------------------------------------------------------------------------
-def estadisticas(partido: str, desde: datetime, hasta: datetime, agregacion: str) -> dict:
-    desde, hasta = _utc(desde), _utc(hasta)
-    if desde >= hasta:
-        raise Validacion("desde debe ser anterior a hasta")
-    if hasta - desde > VENTANA_MAXIMA[agregacion]:
-        raise Validacion(f"La ventana máxima para agregacion={agregacion} es de {_VENTANA_TEXTO[agregacion]}")
-    return {"partidoCodigo": partido, "desde": desde, "hasta": hasta, "agregacion": agregacion,
-            "puntos": influx.consultar(partido, desde, hasta, agregacion)}
-
-
-# --- Neo4j -------------------------------------------------------------------------------
-def eventos(partido: str) -> dict:
-    return {"partidoCodigo": partido, "eventos": neo4j_grafo.eventos_de_partido(partido)}
-
-
-# --- IRIS --------------------------------------------------------------------------------
-def detalle(partido: str) -> dict:
-    return iris.detalle(partido)
-
-
-def cambiar_estado(partido: str, estado: str) -> dict:
-    iris.cambiar_estado(partido, estado)
-    return iris.detalle(partido)

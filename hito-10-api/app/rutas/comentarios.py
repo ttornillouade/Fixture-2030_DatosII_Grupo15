@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app import servicios
 from app.esquemas import Comentario, ComentarioEntrada, PaginaComentarios
-from app.rutas.parametros import fuente, PartidoCodigo, errores
+from app.rutas.parametros import PartidoCodigo, errores, fuente
 
 router = APIRouter(tags=["Cassandra"], dependencies=[Depends(fuente("Cassandra"))])
 

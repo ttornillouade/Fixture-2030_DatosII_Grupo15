@@ -20,3 +20,4 @@ def fuente(nombre: str):
     def registrar(request: Request):
         request.state.fuente = nombre
     return registrar
+

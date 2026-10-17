@@ -17,16 +17,6 @@ class Config(BaseSettings):
 
     redis_url: str = "redis://localhost:6379/0"
 
-    influx_url: str = "http://localhost:8181"
-    influx_database: str = "fixture2030_vivo"
-    influx_token: str = ""
-
-    iris_host: str = "localhost"
-    iris_port: int = 1972
-    iris_namespace: str = "USER"
-    iris_usuario: str = "_SYSTEM"
-    iris_password: str = ""
-
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_usuario: str = "neo4j"
     neo4j_password: str = ""

@@ -8,16 +8,16 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.errores import ErrorApi
-from app.rutas import comentarios, equipos, estadisticas, partidos, sesiones
+from app.rutas import comentarios, equipos, estadisticas, partidos, relaciones, sesiones
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("api")
 
 app = FastAPI(title="Fixture 2030 API", version="1.0.0",
-              description="API REST que integra MongoDB, Neo4j, Cassandra, Redis, InfluxDB e IRIS. "
+              description="API REST del Fixture 2030 sobre MongoDB, Redis, Cassandra y Neo4j. "
                           "Cada endpoint consulta una sola base, respetando su modelo de acceso.",
               servers=[{"url": "http://localhost:8000", "description": "API local (notebook)"}])
-for modulo in (equipos, partidos, comentarios, sesiones, estadisticas):
+for modulo in (equipos, partidos, estadisticas, relaciones, comentarios, sesiones):
     app.include_router(modulo.router)
 
 
