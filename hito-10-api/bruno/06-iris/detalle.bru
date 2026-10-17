@@ -1,0 +1,17 @@
+meta {
+  name: GET detalle del partido
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/detalle
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

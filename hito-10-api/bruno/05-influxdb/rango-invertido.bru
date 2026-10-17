@@ -1,0 +1,17 @@
+meta {
+  name: GET desde posterior a hasta (400)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/estadisticas?desde={{hasta}}&hasta={{desde}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

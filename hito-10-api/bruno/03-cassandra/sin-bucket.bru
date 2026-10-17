@@ -1,0 +1,17 @@
+meta {
+  name: GET sin bucket: falta la particion (400)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/comentarios?limit=5
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

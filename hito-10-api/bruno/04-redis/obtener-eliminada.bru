@@ -1,0 +1,17 @@
+meta {
+  name: GET sesion invalidada o expirada (404)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/sesiones/{{sesionId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 404", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

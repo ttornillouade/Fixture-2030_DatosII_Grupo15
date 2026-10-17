@@ -1,0 +1,28 @@
+meta {
+  name: POST comentario
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/partidos/{{partido}}/comentarios
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "usuarioId": "U000042",
+    "texto": "Gran jugada en el minuto 15"
+  }
+}
+
+script:post-response {
+  bru.setVar("comentarioId", res.getBody().comentarioId);
+}
+
+tests {
+  test("responde 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

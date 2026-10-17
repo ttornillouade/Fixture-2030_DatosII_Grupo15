@@ -1,0 +1,207 @@
+EVIDENCIA HITO 4 — FIXTURE 2030 — MÓDULO DOCUMENTAL (MongoDB)
+Fecha: 2026-10-09 21:23:47 -03
+ Container fixture2030-mongodb Running 
+NAME                  IMAGE          COMMAND                  SERVICE   CREATED          STATUS          PORTS
+fixture2030-mongodb   mongo:latest   "docker-entrypoint.s…"   mongodb   47 seconds ago   Up 47 seconds   127.0.0.1:27017->27017/tcp
+MongoDB: 9.0.2
+
+========== 0. Base fixture2030 borrada (--desde-cero) ==========
+{
+  ok: 1,
+  dropped: 'fixture2030'
+}
+
+========== 1. Validación (RF7) ==========
+Validación $jsonSchema aplicada a equipos
+Validación $jsonSchema aplicada a jugadores
+Índice único equipo_dorsal_unico creado
+
+========== 2. Carga inicial (RF4, RF5, RF8) ==========
+equipos   -> insertados: 64, actualizados: 0, sin cambios: 0
+jugadores -> insertados: 1536, actualizados: 0, sin cambios: 0
+Total: 64 equipos, 1536 jugadores
+
+========== 2b. Segunda carga: no debe insertar nada (idempotencia) ==========
+equipos   -> insertados: 0, actualizados: 0, sin cambios: 64
+jugadores -> insertados: 0, actualizados: 0, sin cambios: 1536
+Total: 64 equipos, 1536 jugadores
+
+========== 3. Operaciones (RF9, RF10) ==========
+
+--- Inserción de un equipo y un jugador (validados por $jsonSchema)
+{
+  _id: 'E900',
+  nombre: 'Seleccion Demo',
+  pais: 'Pais Demo',
+  confederacion: 'OFC',
+  grupo: 'P',
+  updatedAt: ISODate('2026-10-10T00:23:49.377Z')
+}
+
+--- Inserción inválida: jugador con dorsal 120 (rechazada por la validación: máximo 99)
+Rechazado: Document failed validation
+
+--- Actualización del equipo y del jugador
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+
+--- Recuperación por identificador: equipo E010 y jugador E010-J09
+{
+  _id: 'E010',
+  confederacion: 'AFC',
+  grupo: 'C',
+  nombre: 'Seleccion 010',
+  pais: 'Pais 010',
+  updatedAt: ISODate('2026-10-10T00:23:48.703Z')
+}
+{
+  _id: 'E010-J09',
+  apellido: 'Apellido010_09',
+  dorsal: 9,
+  equipoId: 'E010',
+  fechaNacimiento: ISODate('1990-08-07T00:00:00.000Z'),
+  nacionalidad: 'Pais 010',
+  nombre: 'Nombre010_09',
+  posicion: 'Defensor',
+  updatedAt: ISODate('2026-10-10T00:23:48.703Z')
+}
+
+--- Filtrado: equipos de CONMEBOL del grupo A
+[
+  {
+    _id: 'E001',
+    grupo: 'A',
+    nombre: 'Seleccion 001'
+  }
+]
+
+--- Proyección + orden + paginación: plantel de E010 por dorsal, página 2 de 5 jugadores
+[
+  {
+    _id: 'E010-J06',
+    apellido: 'Apellido010_06',
+    dorsal: 6,
+    posicion: 'Defensor'
+  },
+  {
+    _id: 'E010-J07',
+    apellido: 'Apellido010_07',
+    dorsal: 7,
+    posicion: 'Defensor'
+  },
+  {
+    _id: 'E010-J08',
+    apellido: 'Apellido010_08',
+    dorsal: 8,
+    posicion: 'Defensor'
+  },
+  {
+    _id: 'E010-J09',
+    apellido: 'Apellido010_09',
+    dorsal: 9,
+    posicion: 'Defensor'
+  },
+  {
+    _id: 'E010-J10',
+    apellido: 'Apellido010_10',
+    dorsal: 10,
+    posicion: 'Mediocampista'
+  }
+]
+
+--- Limpieza de los documentos de demostración
+jugadores eliminados: 1
+equipos eliminados: 1
+
+========== 4. Agregación (RF11) ==========
+[
+  {
+    total: 264,
+    confederacion: 'AFC',
+    porPosicion: {
+      Delantero: 77,
+      Defensor: 77,
+      Mediocampista: 88,
+      Arquero: 22
+    }
+  },
+  {
+    total: 264,
+    confederacion: 'CAF',
+    porPosicion: {
+      Defensor: 77,
+      Delantero: 77,
+      Arquero: 22,
+      Mediocampista: 88
+    }
+  },
+  {
+    total: 240,
+    confederacion: 'CONCACAF',
+    porPosicion: {
+      Defensor: 70,
+      Arquero: 20,
+      Mediocampista: 80,
+      Delantero: 70
+    }
+  },
+  {
+    total: 264,
+    confederacion: 'CONMEBOL',
+    porPosicion: {
+      Mediocampista: 88,
+      Arquero: 22,
+      Defensor: 77,
+      Delantero: 77
+    }
+  },
+  {
+    total: 240,
+    confederacion: 'OFC',
+    porPosicion: {
+      Arquero: 20,
+      Defensor: 70,
+      Delantero: 70,
+      Mediocampista: 80
+    }
+  },
+  {
+    total: 264,
+    confederacion: 'UEFA',
+    porPosicion: {
+      Delantero: 77,
+      Defensor: 77,
+      Mediocampista: 88,
+      Arquero: 22
+    }
+  }
+]
+
+========== 5. Índices y rendimiento (RF12, RF13) ==========
+Antes del índice: nReturned=7 totalDocsExamined=24 totalKeysExamined=24 executionTimeMillis=0
+  plan: "stage":"FETCH" > "stage":"IXSCAN" | índice usado: equipo_dorsal_unico
+Después del índice: nReturned=7 totalDocsExamined=7 totalKeysExamined=7 executionTimeMillis=0
+  plan: "stage":"FETCH" > "stage":"IXSCAN" | índice usado: equipo_posicion_dorsal
+
+Índices de jugadores: _id_, equipo_dorsal_unico, equipo_posicion_dorsal
+
+========== 6. Integridad (RNF2, RNF3) ==========
+{
+  equipos: 64,
+  jugadores: 1536,
+  jugadoresSinEquipoValido: 0,
+  equiposSinJugadores: 0,
+  documentosQueNoCumplenValidacion: 0
+}

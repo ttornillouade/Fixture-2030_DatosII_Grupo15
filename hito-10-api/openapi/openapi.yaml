@@ -1,0 +1,938 @@
+openapi: 3.1.0
+info:
+  title: Fixture 2030 API
+  description: API REST que integra MongoDB, Neo4j, Cassandra, Redis, InfluxDB e IRIS.
+    Cada endpoint consulta una sola base, respetando su modelo de acceso.
+  version: 1.0.0
+servers:
+- url: http://localhost:8000
+  description: API local (notebook)
+paths:
+  /equipos/{codigo}:
+    get:
+      tags:
+      - MongoDB
+      summary: Ficha de un equipo
+      operationId: obtener_equipo_equipos__codigo__get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^E[0-9]{3}$
+          description: Código de equipo
+          examples:
+          - E010
+          title: Codigo
+        description: Código de equipo
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipo'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /jugadores:
+    get:
+      tags:
+      - MongoDB
+      summary: Plantel de un equipo, filtrado por posición y paginado por dorsal
+      description: 'equipoCodigo es obligatorio: la consulta usa el índice {equipoId,
+        posicion, dorsal} del Hito 4.
+
+        Un equipo inexistente devuelve una página vacía (el filtro es válido, no hay
+        jugadores).'
+      operationId: listar_jugadores_jugadores_get
+      parameters:
+      - name: equipoCodigo
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^E[0-9]{3}$
+          examples:
+          - E010
+          title: Equipocodigo
+      - name: posicion
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - Arquero
+            - Defensor
+            - Mediocampista
+            - Delantero
+            type: string
+          - type: 'null'
+          title: Posicion
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: nextCursor de la página anterior
+          title: Cursor
+        description: nextCursor de la página anterior
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaJugadores'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /partidos/{codigo}/eventos:
+    get:
+      tags:
+      - Neo4j
+      summary: Eventos conectados con un partido en el grafo
+      operationId: eventos_partidos__codigo__eventos_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P[0-9]{3}$
+          description: Código de partido
+          examples:
+          - P001
+          title: Codigo
+        description: Código de partido
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventosPartido'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /partidos/{codigo}/detalle:
+    get:
+      tags:
+      - IRIS
+      summary: Detalle del partido (entidad compleja)
+      operationId: detalle_partidos__codigo__detalle_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P[0-9]{3}$
+          description: Código de partido
+          examples:
+          - P001
+          title: Codigo
+        description: Código de partido
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoDetalle'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /partidos/{codigo}/estado:
+    patch:
+      tags:
+      - IRIS
+      summary: Transición validada del estado del partido
+      description: 'Invoca Fixture.Partido.CambiarEstado (Iniciar/Finalizar): una
+        transición ilegal devuelve 409.'
+      operationId: cambiar_estado_partidos__codigo__estado_patch
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P[0-9]{3}$
+          description: Código de partido
+          examples:
+          - P001
+          title: Codigo
+        description: Código de partido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CambioEstado'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoDetalle'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: La operación no está permitida por el estado actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /partidos/{codigo}/comentarios:
+    get:
+      tags:
+      - Cassandra
+      summary: Página de comentarios de un partido en una ventana de 5 minutos
+      description: Lee los 8 shards del bucket (clave de partición completa) y los
+        fusiona por fecha descendente.
+      operationId: listar_comentarios_partidos__codigo__comentarios_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P[0-9]{3}$
+          description: Código de partido
+          examples:
+          - P001
+          title: Codigo
+        description: Código de partido
+      - name: bucket
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          description: Inicio de la ventana de 5 minutos (partición)
+          examples:
+          - '2030-06-08T20:00:00Z'
+          title: Bucket
+        description: Inicio de la ventana de 5 minutos (partición)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: nextCursor de la página anterior
+          title: Cursor
+        description: nextCursor de la página anterior
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaComentarios'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+      - Cassandra
+      summary: Agrega un comentario a un partido
+      description: 'No es idempotente: cada request crea un comentario nuevo con id
+        y fecha generados por el servidor.'
+      operationId: crear_comentario_partidos__codigo__comentarios_post
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P[0-9]{3}$
+          description: Código de partido
+          examples:
+          - P001
+          title: Codigo
+        description: Código de partido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComentarioEntrada'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comentario'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /sesiones:
+    post:
+      tags:
+      - Redis
+      summary: Crea una sesión con TTL de 30 minutos
+      operationId: crear_sesion_sesiones_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SesionEntrada'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sesion'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /sesiones/{sesionId}:
+    get:
+      tags:
+      - Redis
+      summary: Obtiene una sesión activa
+      description: 404 si la sesión no existe o expiró; 503 si Redis no responde.
+      operationId: obtener_sesion_sesiones__sesionId__get
+      parameters:
+      - name: sesionId
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{8,64}$
+          description: Identificador de sesión
+          title: Sesionid
+        description: Identificador de sesión
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sesion'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+      - Redis
+      summary: Invalida una sesión
+      operationId: eliminar_sesion_sesiones__sesionId__delete
+      parameters:
+      - name: sesionId
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{8,64}$
+          description: Identificador de sesión
+          title: Sesionid
+        description: Identificador de sesión
+      responses:
+        '204':
+          description: Successful Response
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /partidos/{codigo}/estadisticas:
+    get:
+      tags:
+      - InfluxDB
+      summary: Estadísticas por equipo en una ventana temporal
+      description: 'Ventana máxima: 15 minutos en raw (1 punto por segundo y equipo)
+        y 3 horas por minuto.
+
+        Una ventana sin puntos devuelve 200 con la lista vacía: InfluxDB no conoce
+        el partido, solo observaciones.'
+      operationId: obtener_estadisticas_partidos__codigo__estadisticas_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P[0-9]{3}$
+          description: Código de partido
+          examples:
+          - P001
+          title: Codigo
+        description: Código de partido
+      - name: desde
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          examples:
+          - '2026-10-04T14:00:00Z'
+          title: Desde
+      - name: hasta
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          examples:
+          - '2026-10-04T14:10:00Z'
+          title: Hasta
+      - name: agregacion
+        in: query
+        required: false
+        schema:
+          enum:
+          - raw
+          - minuto
+          type: string
+          default: raw
+          title: Agregacion
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Estadisticas'
+        '400':
+          description: La request no cumple el contrato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: La fuente de datos no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CambioEstado:
+      properties:
+        estado:
+          type: string
+          enum:
+          - EN_JUEGO
+          - FINALIZADO
+          title: Estado
+      type: object
+      required:
+      - estado
+      title: CambioEstado
+    Comentario:
+      properties:
+        comentarioId:
+          type: string
+          title: Comentarioid
+        partidoCodigo:
+          type: string
+          title: Partidocodigo
+        usuarioId:
+          type: string
+          title: Usuarioid
+        texto:
+          type: string
+          title: Texto
+        creadoEn:
+          type: string
+          format: date-time
+          title: Creadoen
+        estadoModeracion:
+          type: string
+          title: Estadomoderacion
+        reacciones:
+          type: integer
+          title: Reacciones
+      type: object
+      required:
+      - comentarioId
+      - partidoCodigo
+      - usuarioId
+      - texto
+      - creadoEn
+      - estadoModeracion
+      - reacciones
+      title: Comentario
+    ComentarioEntrada:
+      properties:
+        usuarioId:
+          type: string
+          pattern: ^U[0-9]{6}$
+          title: Usuarioid
+          examples:
+          - U000042
+        texto:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Texto
+          examples:
+          - Gran jugada en el minuto 15
+      type: object
+      required:
+      - usuarioId
+      - texto
+      title: ComentarioEntrada
+    Equipo:
+      properties:
+        codigo:
+          type: string
+          title: Codigo
+          examples:
+          - E010
+        nombre:
+          type: string
+          title: Nombre
+        pais:
+          type: string
+          title: Pais
+        confederacion:
+          type: string
+          title: Confederacion
+        grupo:
+          type: string
+          title: Grupo
+      type: object
+      required:
+      - codigo
+      - nombre
+      - pais
+      - confederacion
+      - grupo
+      title: Equipo
+    Error:
+      properties:
+        code:
+          type: string
+          title: Code
+          examples:
+          - NOT_FOUND
+        message:
+          type: string
+          title: Message
+        requestId:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Requestid
+      type: object
+      required:
+      - code
+      - message
+      title: Error
+    Estadisticas:
+      properties:
+        partidoCodigo:
+          type: string
+          title: Partidocodigo
+        desde:
+          type: string
+          format: date-time
+          title: Desde
+        hasta:
+          type: string
+          format: date-time
+          title: Hasta
+        agregacion:
+          type: string
+          enum:
+          - raw
+          - minuto
+          title: Agregacion
+        puntos:
+          items:
+            $ref: '#/components/schemas/PuntoEstadistica'
+          type: array
+          title: Puntos
+      type: object
+      required:
+      - partidoCodigo
+      - desde
+      - hasta
+      - agregacion
+      - puntos
+      title: Estadisticas
+    EventoGrafo:
+      properties:
+        tipo:
+          type: string
+          title: Tipo
+        minuto:
+          type: integer
+          title: Minuto
+        jugadorCodigo:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Jugadorcodigo
+      type: object
+      required:
+      - tipo
+      - minuto
+      title: EventoGrafo
+    EventosPartido:
+      properties:
+        partidoCodigo:
+          type: string
+          title: Partidocodigo
+        eventos:
+          items:
+            $ref: '#/components/schemas/EventoGrafo'
+          type: array
+          title: Eventos
+      type: object
+      required:
+      - partidoCodigo
+      - eventos
+      title: EventosPartido
+    Jugador:
+      properties:
+        codigo:
+          type: string
+          title: Codigo
+          examples:
+          - E010-J09
+        equipoCodigo:
+          type: string
+          title: Equipocodigo
+        nombre:
+          type: string
+          title: Nombre
+        apellido:
+          type: string
+          title: Apellido
+        posicion:
+          type: string
+          title: Posicion
+        dorsal:
+          type: integer
+          title: Dorsal
+      type: object
+      required:
+      - codigo
+      - equipoCodigo
+      - nombre
+      - apellido
+      - posicion
+      - dorsal
+      title: Jugador
+    PaginaComentarios:
+      properties:
+        partidoCodigo:
+          type: string
+          title: Partidocodigo
+        bucket:
+          type: string
+          format: date-time
+          title: Bucket
+        items:
+          items:
+            $ref: '#/components/schemas/Comentario'
+          type: array
+          title: Items
+        limit:
+          type: integer
+          title: Limit
+        nextCursor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Nextcursor
+      type: object
+      required:
+      - partidoCodigo
+      - bucket
+      - items
+      - limit
+      title: PaginaComentarios
+    PaginaJugadores:
+      properties:
+        equipoCodigo:
+          type: string
+          title: Equipocodigo
+        items:
+          items:
+            $ref: '#/components/schemas/Jugador'
+          type: array
+          title: Items
+        limit:
+          type: integer
+          title: Limit
+        nextCursor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Nextcursor
+      type: object
+      required:
+      - equipoCodigo
+      - items
+      - limit
+      title: PaginaJugadores
+    PartidoDetalle:
+      properties:
+        codigo:
+          type: string
+          title: Codigo
+        estado:
+          type: string
+          title: Estado
+        fechaHora:
+          type: string
+          title: Fechahora
+        sede:
+          type: string
+          title: Sede
+        ciudad:
+          type: string
+          title: Ciudad
+        equipoLocal:
+          type: string
+          title: Equipolocal
+        equipoVisitante:
+          type: string
+          title: Equipovisitante
+        cantidadEventos:
+          type: integer
+          title: Cantidadeventos
+      type: object
+      required:
+      - codigo
+      - estado
+      - fechaHora
+      - sede
+      - ciudad
+      - equipoLocal
+      - equipoVisitante
+      - cantidadEventos
+      title: PartidoDetalle
+    PuntoEstadistica:
+      properties:
+        time:
+          type: string
+          format: date-time
+          title: Time
+        equipoId:
+          type: string
+          title: Equipoid
+        posesionPct:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Posesionpct
+        pasesCompletados:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Pasescompletados
+        tiros:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Tiros
+      type: object
+      required:
+      - time
+      - equipoId
+      title: PuntoEstadistica
+    Sesion:
+      properties:
+        sesionId:
+          type: string
+          title: Sesionid
+        usuarioId:
+          type: string
+          title: Usuarioid
+        estado:
+          type: string
+          title: Estado
+        locale:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Locale
+        creadaEn:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Creadaen
+        expiraEnSegundos:
+          type: integer
+          title: Expiraensegundos
+      type: object
+      required:
+      - sesionId
+      - usuarioId
+      - estado
+      - expiraEnSegundos
+      title: Sesion
+    SesionEntrada:
+      properties:
+        usuarioId:
+          type: string
+          pattern: ^U[0-9]{6}$
+          title: Usuarioid
+          examples:
+          - U000042
+        locale:
+          type: string
+          pattern: ^[a-z]{2}-[A-Z]{2}$
+          title: Locale
+          default: es-AR
+      type: object
+      required:
+      - usuarioId
+      title: SesionEntrada

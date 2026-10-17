@@ -1,0 +1,17 @@
+meta {
+  name: GET codigo de equipo invalido (400)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/equipos/ARG
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

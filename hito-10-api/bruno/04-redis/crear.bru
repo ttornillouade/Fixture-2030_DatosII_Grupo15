@@ -1,0 +1,28 @@
+meta {
+  name: POST crear sesion
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/sesiones
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "usuarioId": "U000042",
+    "locale": "es-AR"
+  }
+}
+
+script:post-response {
+  bru.setVar("sesionId", res.getBody().sesionId);
+}
+
+tests {
+  test("responde 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

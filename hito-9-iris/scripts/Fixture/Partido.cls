@@ -60,6 +60,25 @@ Method RegistrarEvento(tipo As %String, minuto As %Integer, jugador As Fixture.J
     quit $$$OK
 }
 
+/// Punto de entrada para aplicaciones (API REST): aplica una transición sobre el partido
+/// usando Iniciar o Finalizar, así la regla de negocio sigue estando en la clase.
+/// Devuelve OK, NOT_FOUND, INVALID o CONFLICT:<motivo>.
+ClassMethod CambiarEstado(codigo As %String, estado As %String) As %String
+{
+    set partido = ..CodigoIdxOpen(codigo)
+    if '$isobject(partido) quit "NOT_FOUND"
+    if estado = "EN_JUEGO" {
+        set sc = partido.Iniciar()
+    } elseif estado = "FINALIZADO" {
+        set sc = partido.Finalizar()
+    } else {
+        quit "INVALID"
+    }
+    if $$$ISOK(sc) set sc = partido.%Save()
+    if $$$ISERR(sc) quit "CONFLICT:"_$system.Status.GetOneErrorText(sc)
+    quit "OK"
+}
+
 /// Valida el objeto completo antes de guardarlo.
 Method %OnBeforeSave(insert As %Boolean) As %Status [ Private, ServerOnly = 1 ]
 {

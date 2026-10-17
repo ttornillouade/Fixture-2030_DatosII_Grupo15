@@ -1,0 +1,27 @@
+meta {
+  name: POST el mismo comentario otra vez: crea un duplicado (no idempotente)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/partidos/{{partido}}/comentarios
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "usuarioId": "U000042",
+    "texto": "Gran jugada en el minuto 15"
+  }
+}
+
+tests {
+  test("responde 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("genera otro comentarioId", function() {
+    expect(res.getBody().comentarioId).to.not.equal(bru.getVar("comentarioId"));
+  });
+}

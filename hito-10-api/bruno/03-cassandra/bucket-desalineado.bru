@@ -1,0 +1,17 @@
+meta {
+  name: GET bucket que no empieza en multiplo de 5 min (400)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/partidos/{{partido}}/comentarios?bucket=2030-06-08T20:03:00Z
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

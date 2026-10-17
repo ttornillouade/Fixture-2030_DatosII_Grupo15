@@ -1,0 +1,23 @@
+meta {
+  name: PATCH estado fuera del contrato (400)
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/partidos/{{partidoProgramado}}/estado
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "estado": "EstadoNoPermitido"
+  }
+}
+
+tests {
+  test("responde 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

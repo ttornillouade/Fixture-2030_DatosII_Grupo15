@@ -1,0 +1,23 @@
+meta {
+  name: PATCH P003 EN_JUEGO -> FINALIZADO
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/partidos/{{partidoProgramado}}/estado
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "estado": "FINALIZADO"
+  }
+}
+
+tests {
+  test("responde 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
