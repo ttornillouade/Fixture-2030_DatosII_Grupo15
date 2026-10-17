@@ -5,9 +5,24 @@
 API en **FastAPI** que expone casos de uso del Fixture 2030 sobre **cuatro bases: MongoDB, Redis,
 Cassandra y Neo4j**. Cada endpoint consulta una sola base y respeta su modelo de acceso.
 
-> Las estadísticas temporales (RF7) y el partido como entidad compleja (RF8) se resuelven con
-> MongoDB. La decisión y cómo se cumple lo que piden esos requisitos están en
-> [arquitectura](docs/arquitectura_y_adaptadores.md#desvío-de-rf7-y-rf8-cuatro-bases-en-lugar-de-seis).
+## ⚠️ Desvío de la consigna: RF7 y RF8
+
+**RF7 y RF8 no se cumplen al pie de la letra.** La consigna pide el endpoint de estadísticas
+temporales sobre **InfluxDB** (RF7) y el de la entidad compleja sobre **IRIS** (RF8). Esta versión
+resuelve los dos con **MongoDB**, por decisión del grupo de simplificar el TPO a cuatro motores.
+
+| Requisito | La consigna pide | Esta API implementa | Se mantiene | Se pierde |
+|---|---|---|---|---|
+| RF7 | Estadísticas temporales en InfluxDB, acotando intervalo o agregación | `GET /partidos/{codigo}/estadisticas` sobre una colección *time series* de MongoDB | Ventana validada (máx. 15 min crudo, 3 h por minuto), agregación por minuto según la semántica de cada medida, dimensiones partido y equipo, retención automática de 14 días | El motor especializado en series, el *line protocol* y su SQL |
+| RF8 | Entidad compleja en IRIS, con transiciones validadas | `GET /partidos/{codigo}/detalle` y `PATCH /partidos/{codigo}/estado` sobre un documento `partido` con sus eventos embebidos | Entidad con subordinados, transición validada y atómica (`update` condicionado al estado), y la distinción entre inexistente (404), transición inválida (409) y base caída (503) | Las clases persistentes, la herencia y la proyección SQL de IRIS. La regla depende de que la API sea la única interfaz de escritura |
+
+**Por qué:** seis motores son mucha infraestructura para el volumen del laboratorio, y esas dos
+funcionalidades encajan en el modelo documental sin perder lo central de cada requisito.
+
+**Dónde está la versión que cumple RF7 y RF8 al pie de la letra:** la API con InfluxDB e IRIS está
+en el historial del repositorio (commit `d64d3e8`, PR #6), y los módulos originales siguen en
+`hito-8-influxdb/` e `hito-9-iris/`. Más detalle en
+[arquitectura](docs/arquitectura_y_adaptadores.md#desvío-de-rf7-y-rf8-cuatro-bases-en-lugar-de-seis).
 
 ## Endpoints
 
