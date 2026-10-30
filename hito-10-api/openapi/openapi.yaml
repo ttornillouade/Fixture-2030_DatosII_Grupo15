@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Fixture 2030 API
-  description: API REST del Fixture 2030 sobre MongoDB, Redis, Cassandra y Neo4j.
-    Cada endpoint consulta una sola base, respetando su modelo de acceso.
+  description: API REST del Fixture 2030 sobre MongoDB, Neo4j, Cassandra, Redis, InfluxDB
+    e IRIS. Cada endpoint consulta una sola base, respetando su modelo de acceso.
   version: 1.0.0
 servers:
 - url: http://localhost:8000
@@ -126,8 +126,8 @@ paths:
   /partidos/{codigo}/detalle:
     get:
       tags:
-      - MongoDB
-      summary: Detalle del partido (entidad compleja)
+      - IRIS
+      summary: Detalle del partido con sus eventos (entidad compleja)
       operationId: detalle_partidos__codigo__detalle_get
       parameters:
       - name: codigo
@@ -169,7 +169,7 @@ paths:
   /partidos/{codigo}/estado:
     patch:
       tags:
-      - MongoDB
+      - IRIS
       summary: Transición validada del estado del partido
       description: 'PROGRAMADO -> EN_JUEGO -> FINALIZADO. Es un update condicionado
         al estado de origen:
@@ -228,8 +228,8 @@ paths:
   /partidos/{codigo}/estadisticas:
     get:
       tags:
-      - MongoDB
-      summary: Estadísticas por equipo en una ventana temporal (colección time series)
+      - InfluxDB
+      summary: Estadísticas por equipo en una ventana temporal (InfluxDB)
       description: 'Ventana máxima: 15 minutos en raw (1 punto por segundo y equipo)
         y 3 horas por minuto.
 
@@ -675,6 +675,27 @@ components:
       - agregacion
       - puntos
       title: Estadisticas
+    Evento:
+      properties:
+        minuto:
+          type: integer
+          title: Minuto
+        tipo:
+          type: string
+          title: Tipo
+        jugador:
+          type: string
+          title: Jugador
+        dorsal:
+          type: integer
+          title: Dorsal
+      type: object
+      required:
+      - minuto
+      - tipo
+      - jugador
+      - dorsal
+      title: Evento
     Jugador:
       properties:
         codigo:
@@ -767,39 +788,16 @@ components:
         estado:
           type: string
           title: Estado
-        fechaHora:
-          type: string
-          format: date-time
-          title: Fechahora
-        fase:
-          type: string
-          title: Fase
-        sede:
-          type: string
-          title: Sede
-        ciudad:
-          type: string
-          title: Ciudad
-        equipoLocal:
-          type: string
-          title: Equipolocal
-        equipoVisitante:
-          type: string
-          title: Equipovisitante
-        cantidadEventos:
-          type: integer
-          title: Cantidadeventos
+        eventos:
+          items:
+            $ref: '#/components/schemas/Evento'
+          type: array
+          title: Eventos
       type: object
       required:
       - codigo
       - estado
-      - fechaHora
-      - fase
-      - sede
-      - ciudad
-      - equipoLocal
-      - equipoVisitante
-      - cantidadEventos
+      - eventos
       title: PartidoDetalle
     PartidoJugado:
       properties:
