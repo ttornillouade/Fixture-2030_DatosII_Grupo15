@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Ejecuta todas las pruebas con la API corriendo (scripts/iniciar_api.sh) y guarda la salida en docs/evidencia/.
-#   1. Conectividad de cada base.            4. Contraste: respuesta de la API vs. cliente nativo.
-#   2. Contrato: OpenAPI == código.          5. Dependencias caídas: Neo4j y Redis (503 y recuperación).
+#   1. Conectividad de las seis bases.       4. Contraste: respuesta de la API vs. cliente nativo.
+#   2. Contrato: OpenAPI == código.          5. Dependencias caídas: Neo4j, Redis, IRIS e InfluxDB (503 y recuperación).
 #   3. Colección Bruno (válidos, inválidos,  6. Latencia básica por endpoint.
 #      inexistentes, vacíos, repetidos).
 set -uo pipefail
@@ -32,10 +32,14 @@ api() { curl -s "$B$1"; echo; }
   mongo() { docker exec fixture2030-mongodb mongosh --quiet --eval "$1"; }
   echo "--- MongoDB: GET /equipos/E010"; api /equipos/E010
   mongo 'printjson(db.getSiblingDB("fixture2030").equipos.findOne({_id:"E010"},{nombre:1,confederacion:1,grupo:1}))'
-  echo "--- MongoDB: GET /partidos/P001/detalle"; api /partidos/P001/detalle
-  mongo 'printjson(db.getSiblingDB("fixture2030").partidos.aggregate([{$match:{_id:"P001"}},{$project:{estado:1,fase:1,"sede.nombre":1,equipoLocalId:1,equipoVisitanteId:1,cantidadEventos:{$size:"$eventos"}}}]).toArray())'
-  echo "--- MongoDB: GET /partidos/P001/estadisticas (2 s)"; api "/partidos/P001/estadisticas?desde=2030-06-08T16:00:00Z&hasta=2030-06-08T16:00:02Z"
-  mongo 'printjson(db.getSiblingDB("fixture2030").estadisticas.find({"meta.partidoId":"P001", ts:{$gte:ISODate("2030-06-08T16:00:00Z"), $lt:ISODate("2030-06-08T16:00:02Z")}},{_id:0}).sort({ts:1}).toArray())'
+  echo "--- IRIS: GET /partidos/P001/detalle"; api /partidos/P001/detalle
+  docker exec -i fixture2030-iris iris session IRIS <<'IRIS' | grep -vE "^(USER>|$)"
+do ##class(%SQL.Statement).%ExecDirect(, "SELECT p.Codigo, p.Estado, e.Minuto, e.Tipo, e.Jugador->Nombre, e.Jugador->Apellido, e.Jugador->Dorsal FROM Fixture.Evento e JOIN Fixture.Partido p ON e.Partido = p.ID WHERE p.Codigo = 'P001' ORDER BY e.Minuto").%Display()
+halt
+IRIS
+  echo "--- InfluxDB: GET /partidos/P001/estadisticas (2 s)"; api "/partidos/P001/estadisticas?desde=2030-06-08T16:00:00Z&hasta=2030-06-08T16:00:02Z"
+  INFLUXDB3_AUTH_TOKEN="$INFLUX_TOKEN" docker exec -e INFLUXDB3_AUTH_TOKEN fixture2030-influxdb influxdb3 query -d "$INFLUX_DATABASE" \
+    "SELECT time, equipo_id, posesion_pct, pases_completados, tiros FROM estadisticas_equipo WHERE partido_id = 'P001' AND time >= '2030-06-08T16:00:00Z' AND time < '2030-06-08T16:00:02Z' ORDER BY time, equipo_id"
   echo "--- Neo4j: GET /jugadores/E001-J09/partidos"; api /jugadores/E001-J09/partidos
   docker exec fixture2030-neo4j cypher-shell -u "$NEO4J_USUARIO" -p "$NEO4J_PASSWORD" \
     "MATCH (j:Jugador {id:'E001-J09'})-[:PARTICIPA_EN]->(p:Partido)<-[:DISPUTA]-(rival:Equipo) WHERE NOT (j)-[:PERTENECE_A]->(rival) RETURN p.id, p.fecha, rival.id ORDER BY p.fecha, p.id"
@@ -61,6 +65,19 @@ api() { curl -s "$B$1"; echo; }
   echo "Otra fuente durante la caída: $(curl -s -o /dev/null -w 'GET /equipos/E011 -> HTTP %{http_code}' "$B/equipos/E011")"
   docker start fixture2030-redis >/dev/null
   sleep 2; echo "Redis levantado de nuevo -> GET /sesiones/s-demo-001 HTTP $(esperar_200 /sesiones/s-demo-001), sin reiniciar la API"
+  echo "--- IRIS detenido"
+  docker stop fixture2030-iris >/dev/null
+  curl -s -w "\n-> HTTP %{http_code} en %{time_total}s\n" "$B/partidos/P001/detalle"
+  echo "Otra fuente durante la caída: $(curl -s -o /dev/null -w 'GET /equipos/E011 -> HTTP %{http_code}' "$B/equipos/E011")"
+  docker start fixture2030-iris >/dev/null
+  echo "IRIS levantado de nuevo -> HTTP $(esperar_200 /partidos/P001/detalle), sin reiniciar la API"
+  echo "--- InfluxDB detenido"
+  E="/partidos/P001/estadisticas?desde=2030-06-08T16:00:00Z&hasta=2030-06-08T16:00:02Z"
+  docker stop fixture2030-influxdb >/dev/null
+  curl -s -w "\n-> HTTP %{http_code} en %{time_total}s\n" "$B$E"
+  echo "Otra fuente durante la caída: $(curl -s -o /dev/null -w 'GET /partidos/P001/detalle -> HTTP %{http_code}' "$B/partidos/P001/detalle")"
+  docker start fixture2030-influxdb >/dev/null
+  echo "InfluxDB levantado de nuevo -> HTTP $(esperar_200 "$E"), sin reiniciar la API"
 
   titulo "6. Latencia básica (20 requests secuenciales por endpoint, cliente curl en la misma notebook)"
   for ruta in "/equipos/E010" "/jugadores?equipoCodigo=E010&posicion=Delantero" "/partidos/P001/detalle" \
