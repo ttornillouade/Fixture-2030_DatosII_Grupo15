@@ -11,7 +11,7 @@ class Error(BaseModel):
     requestId: str | None = None
 
 
-# --- MongoDB ----------------------------------------------------------------------------
+# --- MongoDB -----------------------------------------------------------------------------
 class Equipo(BaseModel):
     codigo: str = Field(examples=["E010"])
     nombre: str
@@ -70,7 +70,7 @@ class Sesion(BaseModel):
     expiraEnSegundos: int
 
 
-# --- MongoDB: estadísticas temporales (Hito 8) ------------------------------------------
+# --- InfluxDB: estadísticas temporales (Hito 8) ------------------------------------------
 class PuntoEstadistica(BaseModel):
     time: datetime
     equipoId: str
@@ -87,17 +87,18 @@ class Estadisticas(BaseModel):
     puntos: list[PuntoEstadistica]
 
 
-# --- MongoDB: partidos y eventos (Hito 9) ------------------------------------------------
+# --- IRIS: partido y sus eventos (Hito 9) ------------------------------------------------
+class Evento(BaseModel):
+    minuto: int
+    tipo: str
+    jugador: str
+    dorsal: int
+
+
 class PartidoDetalle(BaseModel):
     codigo: str
     estado: str
-    fechaHora: datetime
-    fase: str
-    sede: str
-    ciudad: str
-    equipoLocal: str
-    equipoVisitante: str
-    cantidadEventos: int
+    eventos: list[Evento]
 
 
 class CambioEstado(BaseModel):
