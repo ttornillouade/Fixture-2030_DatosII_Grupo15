@@ -3,7 +3,7 @@ import base64
 import binascii
 from datetime import datetime, timedelta, timezone
 
-from app.adaptadores import cassandra, mongodb, neo4j_grafo, redis_sesiones
+from app.adaptadores import cassandra, influx, iris, mongodb, neo4j_grafo, redis_sesiones
 from app.errores import Validacion
 
 # Ventana máxima por consulta temporal: evita traer el histórico completo del partido.
@@ -13,16 +13,6 @@ _VENTANA_TEXTO = {"raw": "15 minutos", "minuto": "3 horas"}
 
 def _utc(valor: datetime) -> datetime:
     return valor.replace(tzinfo=timezone.utc) if valor.tzinfo is None else valor.astimezone(timezone.utc)
-
-
-# --- MongoDB: partidos -------------------------------------------------------------------
-def detalle(partido: str) -> dict:
-    return mongodb.detalle_partido(partido)
-
-
-def cambiar_estado(partido: str, estado: str) -> dict:
-    mongodb.cambiar_estado(partido, estado)
-    return mongodb.detalle_partido(partido)
 
 
 # --- MongoDB: equipos y jugadores --------------------------------------------------------
@@ -41,7 +31,7 @@ def jugadores(equipo_codigo: str, posicion: str | None, limit: int, cursor: str 
             "nextCursor": str(items[-1]["dorsal"]) if hay_mas and items else None}
 
 
-# --- MongoDB: estadísticas temporales ----------------------------------------------------
+# --- InfluxDB: estadísticas temporales ---------------------------------------------------
 def estadisticas(partido: str, desde: datetime, hasta: datetime, agregacion: str) -> dict:
     desde, hasta = _utc(desde), _utc(hasta)
     if desde >= hasta:
@@ -49,7 +39,17 @@ def estadisticas(partido: str, desde: datetime, hasta: datetime, agregacion: str
     if hasta - desde > VENTANA_MAXIMA[agregacion]:
         raise Validacion(f"La ventana máxima para agregacion={agregacion} es de {_VENTANA_TEXTO[agregacion]}")
     return {"partidoCodigo": partido, "desde": desde, "hasta": hasta, "agregacion": agregacion,
-            "puntos": mongodb.estadisticas(partido, desde, hasta, agregacion)}
+            "puntos": influx.consultar(partido, desde, hasta, agregacion)}
+
+
+# --- IRIS: partido y sus eventos (entidad compleja) --------------------------------------
+def detalle(partido: str) -> dict:
+    return iris.detalle(partido)
+
+
+def cambiar_estado(partido: str, estado: str) -> dict:
+    iris.cambiar_estado(partido, estado)
+    return iris.detalle(partido)
 
 
 # --- Neo4j: recorridos -------------------------------------------------------------------

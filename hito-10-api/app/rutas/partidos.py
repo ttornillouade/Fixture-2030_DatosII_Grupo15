@@ -4,11 +4,11 @@ from app import servicios
 from app.esquemas import CambioEstado, PartidoDetalle
 from app.rutas.parametros import PartidoCodigo, errores, fuente
 
-router = APIRouter(tags=["MongoDB"], dependencies=[Depends(fuente("MongoDB"))])
+router = APIRouter(tags=["IRIS"], dependencies=[Depends(fuente("IRIS"))])
 
 
 @router.get("/partidos/{codigo}/detalle", response_model=PartidoDetalle, responses=errores(400, 404, 503),
-            summary="Detalle del partido (entidad compleja)")
+            summary="Detalle del partido con sus eventos (entidad compleja)")
 def detalle(codigo: PartidoCodigo):
     return servicios.detalle(codigo)
 

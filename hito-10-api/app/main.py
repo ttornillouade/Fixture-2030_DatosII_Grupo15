@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("api")
 
 app = FastAPI(title="Fixture 2030 API", version="1.0.0",
-              description="API REST del Fixture 2030 sobre MongoDB, Redis, Cassandra y Neo4j. "
+              description="API REST del Fixture 2030 sobre MongoDB, Neo4j, Cassandra, Redis, InfluxDB e IRIS. "
                           "Cada endpoint consulta una sola base, respetando su modelo de acceso.",
               servers=[{"url": "http://localhost:8000", "description": "API local (notebook)"}])
 for modulo in (equipos, partidos, estadisticas, relaciones, comentarios, sesiones):

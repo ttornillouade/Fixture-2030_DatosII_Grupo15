@@ -1,8 +1,8 @@
-# Fixture 2030 — las cuatro bases de la API, con un solo comando:
+# Fixture 2030 — las seis bases de la API, con un solo comando:
 #   bash scripts/levantar_todo.sh        (o: docker compose up -d --wait)
 # La API corre en la notebook (scripts/iniciar_api.sh) y llega a las bases por localhost.
 # Los datos persisten en ~/docker/data/<base> (los mismos directorios de cada hito).
-# Los scripts de inicialización se montan desde las carpetas de los hitos 4, 5 y 6.
+# Los scripts de inicialización se montan desde las carpetas de los hitos 4, 5, 6 y 9.
 services:
   mongodb:
     image: mongo:latest
@@ -75,3 +75,38 @@ services:
       timeout: 10s
       retries: 30
       start_period: 20s
+
+  influxdb:
+    image: influxdb:3-core
+    container_name: fixture2030-influxdb
+    restart: unless-stopped
+    ports: ["127.0.0.1:8181:8181"]
+    # Mismo node-id que el Hito 8: si cambia, el servidor no ve los datos ya persistidos.
+    # /health y /ping sin token, para el healthcheck; los datos siguen exigiendo token.
+    command: ["influxdb3", "serve", "--node-id=fixture2030-node0", "--object-store=file",
+              "--data-dir=/var/lib/influxdb3/data", "--disable-authz=health,ping"]
+    volumes:
+      - ${HOME}/docker/data/influxdb:/var/lib/influxdb3
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "localhost:8181/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  iris:
+    image: intersystems/iris-community:latest-cd
+    container_name: fixture2030-iris
+    restart: unless-stopped
+    ports: ["127.0.0.1:1972:1972", "127.0.0.1:52773:52773"]
+    # Durable %SYS del Hito 9 y sus clases (Fixture.*), que se compilan en scripts/inicializar_datos.sh.
+    environment:
+      ISC_DATA_DIRECTORY: /durable
+    volumes:
+      - ${HOME}/docker/data/iris:/durable
+      - ../hito-9-iris/scripts:/scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "iris qlist IRIS | grep -q '\\^running'"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
