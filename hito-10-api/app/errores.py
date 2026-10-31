@@ -5,9 +5,11 @@ class ErrorApi(Exception):
     status = 500
     code = "INTERNAL_ERROR"
 
-    def __init__(self, message: str, code: str | None = None):
+    def __init__(self, message: str, code: str | None = None, causa: str | None = None):
         super().__init__(message)
         self.message = message
+        # Causa técnica (tipo de excepción del driver): va al log de la request, nunca a la respuesta.
+        self.causa = causa
         if code:
             self.code = code
 
@@ -28,11 +30,22 @@ class Conflicto(ErrorApi):
 
 
 class DependenciaNoDisponible(ErrorApi):
-    """La base no respondió (caída, timeout o credenciales). No se exponen detalles internos."""
+    """La base rechazó la conexión o falló (caída, credenciales, contexto). No se exponen detalles internos."""
 
     status = 503
     code = "DEPENDENCY_UNAVAILABLE"
 
-    def __init__(self, fuente: str):
-        super().__init__(f"La fuente {fuente} no está disponible en este momento")
+    def __init__(self, fuente: str, causa: str | None = None):
+        super().__init__(f"La fuente {fuente} no está disponible en este momento", causa=causa)
+        self.fuente = fuente
+
+
+class DependenciaTimeout(ErrorApi):
+    """La base no respondió dentro de TIMEOUT_S. En una escritura, el resultado es desconocido."""
+
+    status = 504
+    code = "DEPENDENCY_TIMEOUT"
+
+    def __init__(self, fuente: str, causa: str | None = None):
+        super().__init__(f"La fuente {fuente} no respondió a tiempo", causa=causa)
         self.fuente = fuente

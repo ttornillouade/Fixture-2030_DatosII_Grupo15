@@ -1,12 +1,9 @@
 """Adaptador de Redis (Hito 7): sesiones con TTL en la clave fixture2030:session:{id} (HASH)."""
-import logging
-
 import redis
 
 from app.config import config
-from app.errores import DependenciaNoDisponible, NoEncontrado
+from app.errores import DependenciaNoDisponible, DependenciaTimeout, NoEncontrado
 
-log = logging.getLogger("api.redis")
 _cliente = redis.Redis.from_url(config.redis_url, decode_responses=True,
                                 socket_timeout=config.timeout_s, socket_connect_timeout=config.timeout_s)
 
@@ -15,9 +12,9 @@ def _clave(sesion_id: str) -> str:
     return f"fixture2030:session:{sesion_id}"
 
 
-def _no_disponible(e: Exception):
-    log.warning("Redis no disponible: %s", type(e).__name__)
-    return DependenciaNoDisponible("Redis")
+def _no_disponible(e: redis.RedisError):
+    error = DependenciaTimeout if isinstance(e, redis.TimeoutError) else DependenciaNoDisponible
+    return error("Redis", type(e).__name__)
 
 
 def obtener(sesion_id: str) -> dict:
@@ -40,3 +37,10 @@ def eliminar(sesion_id: str) -> None:
         raise _no_disponible(e)
     if borradas == 0:
         raise NoEncontrado("La sesión no existe o expiró", "SESSION_EXPIRED_OR_NOT_FOUND")
+
+
+def ping() -> None:
+    try:
+        _cliente.ping()
+    except redis.RedisError as e:
+        raise _no_disponible(e)

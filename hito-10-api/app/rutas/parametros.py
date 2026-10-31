@@ -11,7 +11,8 @@ PartidoCodigo = Annotated[str, Path(pattern=r"^P[0-9]{3}$", description="Código
 def errores(*codigos: int) -> dict:
     descripciones = {400: "La request no cumple el contrato", 404: "Recurso inexistente",
                      409: "La operación no está permitida por el estado actual",
-                     503: "La fuente de datos no está disponible"}
+                     503: "La fuente de datos rechazó la conexión o falló",
+                     504: "La fuente de datos no respondió dentro de TIMEOUT_S"}
     return {c: {"model": Error, "description": descripciones[c]} for c in codigos}
 
 

@@ -10,7 +10,7 @@ from app.rutas.parametros import PartidoCodigo, errores, fuente
 router = APIRouter(tags=["Cassandra"], dependencies=[Depends(fuente("Cassandra"))])
 
 
-@router.get("/partidos/{codigo}/comentarios", response_model=PaginaComentarios, responses=errores(400, 503),
+@router.get("/partidos/{codigo}/comentarios", response_model=PaginaComentarios, responses=errores(400, 503, 504),
             summary="Página de comentarios de un partido en una ventana de 5 minutos")
 def listar_comentarios(codigo: PartidoCodigo,
                        bucket: Annotated[datetime, Query(description="Inicio de la ventana de 5 minutos (partición)",
@@ -22,7 +22,7 @@ def listar_comentarios(codigo: PartidoCodigo,
 
 
 @router.post("/partidos/{codigo}/comentarios", response_model=Comentario, status_code=status.HTTP_201_CREATED,
-             responses=errores(400, 503), summary="Agrega un comentario a un partido")
+             responses=errores(400, 503, 504), summary="Agrega un comentario a un partido")
 def crear_comentario(codigo: PartidoCodigo, entrada: ComentarioEntrada):
     """No es idempotente: cada request crea un comentario nuevo con id y fecha generados por el servidor."""
     return servicios.crear_comentario(codigo, entrada.usuarioId, entrada.texto)
