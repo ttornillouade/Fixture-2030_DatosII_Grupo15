@@ -1,0 +1,37 @@
+FIXTURE 2030 — HITO 11 — Configuración, resolución y TCP
+Fecha:    2026-10-30 21:08:49 -03 (2026-10-31T00:08:49Z)
+Commit:   064e2b5
+Entorno:  notebook Darwin arm64, Python 3.12.15, Docker 29.5.3
+Origen:   las pruebas corren en la notebook, el mismo host que la API: localhost = la notebook
+Modo:     completo; productos: todos; TIMEOUT_S de la configuración
+Columnas: resultado, producto, capa, duración, prueba: detalle
+
+OK    mongodb   configuracion     0.1 ms  MongoDB: variables: MONGODB_URI=mongodb://localhost:27017, MONGODB_DATABASE=fixture2030
+OK    mongodb   resolucion        2.9 ms  MongoDB: localhost: localhost -> 127.0.0.1, ::1
+OK    mongodb   tcp               0.5 ms  MongoDB: localhost:27017: conexión exitosa: hay un listener
+OK    mongodb   resolucion       29.0 ms  nombre del servicio de Compose (mongodb:27017): host no resuelto desde este entorno (ese nombre solo existe dentro de la red de Docker Compose)
+OK    mongodb   tcp               0.4 ms  puerto incorrecto (localhost:27018): connection refused: el host responde pero no hay listener en el puerto (MongoDB está activo, pero en otro puerto)
+OK    mongodb   tcp            3002.2 ms  host sin ruta (10.255.255.1:27017): timeout: sin respuesta en 3 s (red, firewall, ruta o servicio colgado) (nadie contesta: así se ve una red bloqueada)
+OK    neo4j     configuracion     0.1 ms  Bolt: variables: NEO4J_URI=bolt://localhost:7687, NEO4J_USUARIO=neo4j, NEO4J_PASSWORD=definida (oculta)
+OK    neo4j     resolucion        1.0 ms  Bolt: localhost: localhost -> 127.0.0.1, ::1
+OK    neo4j     tcp               0.6 ms  Bolt: localhost:7687: conexión exitosa: hay un listener
+OK    neo4j     configuracion     0.0 ms  HTTP (Browser): variables: NEO4J_HTTP_URL=http://localhost:7474
+OK    neo4j     resolucion        0.2 ms  HTTP (Browser): localhost: localhost -> 127.0.0.1, ::1
+OK    neo4j     tcp               0.4 ms  HTTP (Browser): localhost:7474: conexión exitosa: hay un listener
+OK    cassandra configuracion     0.0 ms  CQL: variables: CASSANDRA_HOST=localhost, CASSANDRA_PORT=9042, CASSANDRA_KEYSPACE=fixture2030_comments
+OK    cassandra resolucion        0.2 ms  CQL: localhost: localhost -> 127.0.0.1, ::1
+OK    cassandra tcp               0.4 ms  CQL: localhost:9042: conexión exitosa: hay un listener
+OK    cassandra tcp               0.5 ms  puerto interno no publicado (localhost:7199, JMX): connection refused: el host responde pero no hay listener en el puerto (existe dentro del contenedor, pero Compose no lo publica)
+OK    cassandra tcp               0.3 ms  puerto 7000 (gossip de Cassandra, no publicado): conexión exitosa: hay un listener (es otro proceso de la notebook: el TCP no prueba el producto)
+OK    redis     configuracion     0.0 ms  RESP: variables: REDIS_URL=redis://localhost:6379/0
+OK    redis     resolucion        0.2 ms  RESP: localhost: localhost -> 127.0.0.1, ::1
+OK    redis     tcp               0.5 ms  RESP: localhost:6379: conexión exitosa: hay un listener
+OK    influxdb  configuracion     0.0 ms  HTTP API: variables: INFLUX_URL=http://localhost:8181, INFLUX_DATABASE=fixture2030_vivo, INFLUX_TOKEN=definida (oculta)
+OK    influxdb  resolucion        0.4 ms  HTTP API: localhost: localhost -> 127.0.0.1, ::1
+OK    influxdb  tcp               0.4 ms  HTTP API: localhost:8181: conexión exitosa: hay un listener
+OK    iris      configuracion     0.0 ms  Superserver: variables: IRIS_HOST=localhost, IRIS_PORT=1972, IRIS_NAMESPACE=USER, IRIS_USUARIO=_SYSTEM, IRIS_PASSWORD=definida (oculta)
+OK    iris      resolucion        0.3 ms  Superserver: localhost: localhost -> 127.0.0.1, ::1
+OK    iris      tcp               0.3 ms  Superserver: localhost:1972: conexión exitosa: hay un listener
+OK    iris      configuracion     0.0 ms  Portal HTTP: variables: IRIS_PORTAL_URL=http://localhost:52773
+OK    iris      resolucion        0.2 ms  Portal HTTP: localhost: localhost -> 127.0.0.1, ::1
+OK    iris      tcp               0.3 ms  Portal HTTP: localhost:52773: conexión exitosa: hay un listener

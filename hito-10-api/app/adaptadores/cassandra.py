@@ -4,7 +4,6 @@ La partición es (partido_id, bucket_5m, shard): una página de comentarios de u
 leyendo los 8 shards del bucket pedido y fusionándolos por fecha. Nunca se lee sin la clave de
 partición completa (no hay ALLOW FILTERING ni escaneos).
 """
-import logging
 import threading
 import uuid
 import zlib
@@ -15,11 +14,11 @@ from cassandra.cluster import Cluster, NoHostAvailable
 from cassandra.query import BatchStatement, BatchType
 
 from app.config import config
-from app.errores import DependenciaNoDisponible
+from app.errores import DependenciaNoDisponible, DependenciaTimeout
 
-log = logging.getLogger("api.cassandra")
 SHARDS = 8
-_ERRORES = (NoHostAvailable, OperationTimedOut, ReadTimeout, WriteTimeout, Unavailable)
+_TIMEOUTS = (OperationTimedOut, ReadTimeout, WriteTimeout)
+_ERRORES = (NoHostAvailable, Unavailable, *_TIMEOUTS)
 _lock = threading.Lock()
 _estado: dict = {}
 
@@ -52,6 +51,12 @@ def _sesion():
         return _estado["sesion"]
 
 
+def _no_disponible(e: Exception):
+    _estado.clear()
+    error = DependenciaTimeout if isinstance(e, _TIMEOUTS) else DependenciaNoDisponible
+    return error("Cassandra", type(e).__name__)
+
+
 def _fila(partido: str, f) -> dict:
     return {"comentarioId": f.comentario_id, "partidoCodigo": partido, "usuarioId": f.autor_id,
             "texto": f.contenido, "creadoEn": f.creado_en.replace(tzinfo=timezone.utc),
@@ -75,9 +80,7 @@ def leer_pagina(partido: str, bucket: datetime, limit: int,
         for futuro in futuros:
             filas.extend(futuro.result())
     except _ERRORES as e:
-        log.warning("Cassandra no disponible: %s", type(e).__name__)
-        _estado.clear()
-        raise DependenciaNoDisponible("Cassandra")
+        raise _no_disponible(e)
     filas.sort(key=lambda f: (f.creado_en, f.comentario_id), reverse=True)
     return [_fila(partido, f) for f in filas[:limit]], len(filas) > limit
 
@@ -97,8 +100,14 @@ def insertar(partido: str, usuario: str, texto: str) -> dict:
                   (usuario, ahora.date(), ahora, comentario_id, partido, bucket, shard, texto, "VISIBLE", 0))
         sesion.execute(batch)
     except _ERRORES as e:
-        log.warning("Cassandra no disponible: %s", type(e).__name__)
-        _estado.clear()
-        raise DependenciaNoDisponible("Cassandra")
+        raise _no_disponible(e)
     return {"comentarioId": comentario_id, "partidoCodigo": partido, "usuarioId": usuario, "texto": texto,
             "creadoEn": ahora, "estadoModeracion": "VISIBLE", "reacciones": 0}
+
+
+def ping() -> None:
+    """La sesión se abre sobre el keyspace configurado: si no existe, falla al conectar."""
+    try:
+        _sesion().execute("SELECT release_version FROM system.local")
+    except _ERRORES as e:
+        raise _no_disponible(e)

@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.errores import ErrorApi
-from app.rutas import comentarios, equipos, estadisticas, partidos, relaciones, sesiones
+from app.rutas import comentarios, equipos, estadisticas, partidos, relaciones, salud, sesiones
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("api")
@@ -17,22 +17,23 @@ app = FastAPI(title="Fixture 2030 API", version="1.0.0",
               description="API REST del Fixture 2030 sobre MongoDB, Neo4j, Cassandra, Redis, InfluxDB e IRIS. "
                           "Cada endpoint consulta una sola base, respetando su modelo de acceso.",
               servers=[{"url": "http://localhost:8000", "description": "API local (notebook)"}])
-for modulo in (equipos, partidos, estadisticas, relaciones, comentarios, sesiones):
+for modulo in (equipos, partidos, estadisticas, relaciones, comentarios, sesiones, salud):
     app.include_router(modulo.router)
 
 
 @app.middleware("http")
 async def correlacion(request: Request, call_next):
-    """Asigna un requestId a cada request y registra método, ruta, estado y duración."""
+    """Asigna un requestId a cada request y registra, en una sola línea, método, ruta, base, estado,
+    duración, causa técnica (si hubo un error) y requestId."""
     request_id = request.headers.get("X-Request-ID") or f"req-{uuid.uuid4().hex[:12]}"
     request.state.request_id = request_id
     inicio = time.perf_counter()
     respuesta = await call_next(request)
     respuesta.headers["X-Request-ID"] = request_id
     # No se registran cuerpos, query strings ni credenciales: solo lo necesario para correlacionar.
-    log.info("%s %s fuente=%s status=%s %.0fms %s", request.method, request.url.path,
+    log.info("%s %s fuente=%s status=%s %.0fms causa=%s %s", request.method, request.url.path,
              getattr(request.state, "fuente", "-"), respuesta.status_code,
-             (time.perf_counter() - inicio) * 1000, request_id)
+             (time.perf_counter() - inicio) * 1000, getattr(request.state, "causa", None) or "-", request_id)
     return respuesta
 
 
@@ -43,6 +44,7 @@ def _error(request: Request, status: int, code: str, message: str, **extra) -> J
 
 @app.exception_handler(ErrorApi)
 async def error_api(request: Request, e: ErrorApi):
+    request.state.causa = e.causa
     return _error(request, e.status, e.code, e.message)
 
 

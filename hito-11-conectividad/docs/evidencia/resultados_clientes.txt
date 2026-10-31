@@ -1,0 +1,61 @@
+FIXTURE 2030 — HITO 11 — Clientes (protocolo, identidad, contexto, lectura)
+Fecha:    2026-10-30 21:08:53 -03 (2026-10-31T00:08:53Z)
+Commit:   064e2b5
+Entorno:  notebook Darwin arm64, Python 3.12.15, Docker 29.5.3
+Origen:   las pruebas corren en la notebook, el mismo host que la API: localhost = la notebook
+Modo:     completo; productos: todos; TIMEOUT_S de la configuración
+Columnas: resultado, producto, capa, duración, prueba: detalle
+
+SKIP  mongodb   protocolo                 CLI mongosh: no instalado en la notebook (está dentro del contenedor, que es otro origen); se usa el driver de la API
+OK    mongodb   protocolo         8.0 ms  handshake (hello): MongoDB 9.0.2
+SKIP  mongodb   autenticacion             usuario de la URI: la URI no tiene credenciales: el laboratorio corre sin autenticación
+SKIP  mongodb   autorizacion              roles del usuario: sin autenticación no hay roles que verificar
+OK    mongodb   contexto          1.7 ms  database fixture2030: colecciones equipos y jugadores presentes
+OK    mongodb   lectura           1.4 ms  equipos.find_one({_id: 'E010'}): E010 -> Seleccion 010
+OK    mongodb   lectura           0.7 ms  documento inexistente E999: None (ausencia válida: la API responde 404)
+OK    mongodb   contexto          1.5 ms  database inexistente (fixture2030_x): (None, False) (MongoDB no da error: un nombre de database mal escrito parece 'sin datos')
+SKIP  neo4j     protocolo                 CLI cypher-shell: no instalado en la notebook (está dentro del contenedor, que es otro origen); se usa el driver de la API
+OK    neo4j     protocolo       257.0 ms  HTTP del Browser (http://localhost:7474): Neo4j 2026.07.1 community; el Browser responde, pero la API usa Bolt
+OK    neo4j     protocolo        18.0 ms  Bolt (get_server_info): Neo4j/2026.07.1, Bolt 6.1
+OK    neo4j     autenticacion     5.1 ms  usuario neo4j: credenciales aceptadas
+OK    neo4j     autenticacion     9.2 ms  usuario inexistente: False (Bolt responde, pero rechaza la identidad)
+OK    neo4j     autorizacion    509.1 ms  SHOW CURRENT USER: usuario neo4j; roles None (Community no tiene roles: todo usuario es administrador)
+OK    neo4j     contexto         31.7 ms  database neo4j: RETURN 1 -> 1
+OK    neo4j     contexto         14.2 ms  database inexistente: ClientError (Neo.ClientError.Database.DatabaseNotFound: la red y la identidad están bien)
+OK    neo4j     lectura          57.4 ms  Jugador E001-J09 (Cypher parametrizado): 1 nodo
+OK    neo4j     lectura           5.3 ms  Jugador inexistente E999-J99: 0 (resultado vacío: la API responde 404 PLAYER_NOT_FOUND)
+SKIP  cassandra protocolo                 CLI cqlsh: no instalado en la notebook (está dentro del contenedor, que es otro origen); se usa el driver de la API
+OK    cassandra protocolo        99.3 ms  sesión CQL: Cassandra 5.0.9, protocolo CQL v5
+SKIP  cassandra autenticacion             PasswordAuthenticator: el laboratorio usa AllowAllAuthenticator (sin usuario)
+SKIP  cassandra autorizacion              permisos sobre el keyspace: sin autenticación no hay permisos que verificar
+OK    cassandra contexto         21.4 ms  keyspace fixture2030_comments y tabla comentarios_por_partido: partición (partido_id, bucket_5m, shard)
+OK    cassandra contexto          7.6 ms  keyspace inexistente: NoHostAvailable inmediato: el driver lo informa como si no hubiera hosts, pero el mensaje nombra el keyspace (la causa es el contexto, no la red)
+OK    cassandra lectura          12.1 ms  1 comentario de P001, bucket 20:00, shard 0: C001098289 (2030-06-08 20:04:48)
+OK    cassandra lectura           2.0 ms  consulta sin clave de partición: InvalidRequest (consulta inválida: Cassandra la rechaza al instante, no es un timeout)
+OK    cassandra protocolo      6007.7 ms  CQL contra localhost:7000: NoHostAvailable (el TCP conecta, pero ese listener no habla CQL)
+SKIP  redis     protocolo                 CLI redis-cli: no instalado en la notebook (está dentro del contenedor, que es otro origen); se usa el driver de la API
+OK    redis     protocolo         7.7 ms  PING (RESP): PONG, Redis 8.10.2
+SKIP  redis     autenticacion             AUTH: la URL no tiene contraseña: el laboratorio corre sin requirepass
+OK    redis     autorizacion      1.1 ms  ACL WHOAMI: usuario default (sin ACL propias)
+OK    redis     contexto          0.0 ms  base lógica: db 0, claves fixture2030:session:*
+OK    redis     lectura           1.3 ms  EXISTS y TTL de la sesión de prueba: fixture2030:session:s-demo-001: presente, TTL 1789 s
+OK    redis     lectura           0.9 ms  clave inexistente: (0, -2) (ausencia, no falla de Redis. Una clave expirada responde igual: Redis no las distingue)
+SKIP  influxdb  protocolo                 CLI influxdb3: no instalado en la notebook (está dentro del contenedor, que es otro origen); se usa el driver de la API
+OK    influxdb  protocolo         6.8 ms  GET /health (sin token): HTTP 200 OK
+OK    influxdb  autenticacion    22.4 ms  token de .env: SELECT 1 -> HTTP 200
+OK    influxdb  autenticacion     3.3 ms  token inválido: 401 (el servicio responde, pero no autoriza)
+OK    influxdb  autorizacion      5.2 ms  listar databases (requiere token de administrador): 3 databases visibles
+OK    influxdb  contexto          3.4 ms  database fixture2030_vivo: SELECT 1 en fixture2030_vivo -> HTTP 200
+OK    influxdb  contexto          1.2 ms  database inexistente: 404 (token válido, contexto equivocado)
+OK    influxdb  lectura          46.0 ms  P001, ventana de 2 s (raw): 4 puntos
+OK    influxdb  lectura           4.4 ms  ventana sin puntos (2031): 0 (HTTP 200 con 0 puntos: ausencia de datos, no error)
+SKIP  iris      protocolo                 CLI iris: no instalado en la notebook (está dentro del contenedor, que es otro origen); se usa el driver de la API
+OK    iris      protocolo        54.1 ms  portal HTTP (Management Portal): HTTP 200: el portal responde, pero la API usa el Superserver
+OK    iris      autenticacion    14.5 ms  usuario _SYSTEM en USER: _SYSTEM conectado al Superserver (el driver hace handshake y login en una sola operación)
+OK    iris      protocolo         0.6 ms  versión (API nativa): IRIS for UNIX (Ubuntu Server LTS for ARM64 Containers) 2026.
+OK    iris      autenticacion  2009.8 ms  usuario inexistente: RuntimeError (Access Denied)
+OK    iris      autorizacion      0.7 ms  permiso READ sobre %DB_USER: permitido
+OK    iris      contexto          8.2 ms  namespace USER y clase Fixture.Partido: namespace activo USER, clase compilada: 1
+OK    iris      contexto       2018.5 ms  namespace inexistente: (0, 'Access Denied') (Exists() lo detecta; al conectar, IRIS responde el mismo Access Denied que con un usuario inválido)
+OK    iris      lectura           2.2 ms  Fixture.Partido P001: P001 FINALIZADO
+OK    iris      lectura           0.6 ms  partido inexistente P999: None (objeto inexistente: la API responde 404 MATCH_NOT_FOUND)

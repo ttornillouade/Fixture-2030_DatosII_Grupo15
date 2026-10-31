@@ -10,7 +10,7 @@ from app.rutas.parametros import PartidoCodigo, errores, fuente
 router = APIRouter(tags=["InfluxDB"], dependencies=[Depends(fuente("InfluxDB"))])
 
 
-@router.get("/partidos/{codigo}/estadisticas", response_model=Estadisticas, responses=errores(400, 503),
+@router.get("/partidos/{codigo}/estadisticas", response_model=Estadisticas, responses=errores(400, 503, 504),
             summary="Estadísticas por equipo en una ventana temporal (InfluxDB)")
 def obtener_estadisticas(codigo: PartidoCodigo,
                          desde: Annotated[datetime, Query(examples=["2030-06-08T16:00:00Z"])],

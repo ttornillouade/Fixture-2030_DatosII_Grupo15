@@ -117,3 +117,20 @@ class PartidoJugado(BaseModel):
 class PartidosDeJugador(BaseModel):
     jugadorCodigo: str
     partidos: list[PartidoJugado]
+
+
+# --- Salud -------------------------------------------------------------------------------
+class Salud(BaseModel):
+    estado: Literal["up"]
+
+
+class EstadoDependencia(BaseModel):
+    nombre: str
+    estado: Literal["up", "down", "unknown", "not_configured"]
+    codigo: str | None = Field(None, description="DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT o INTERNAL_ERROR si falló")
+    ms: float | None = None
+
+
+class SaludDependencias(BaseModel):
+    estado: Literal["up", "degraded", "down"]
+    dependencias: list[EstadoDependencia]

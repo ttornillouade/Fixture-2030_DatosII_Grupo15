@@ -10,13 +10,13 @@ router = APIRouter(tags=["MongoDB"], dependencies=[Depends(fuente("MongoDB"))])
 EquipoCodigo = Annotated[str, Path(pattern=r"^E[0-9]{3}$", description="Código de equipo", examples=["E010"])]
 
 
-@router.get("/equipos/{codigo}", response_model=Equipo, responses=errores(400, 404, 503),
+@router.get("/equipos/{codigo}", response_model=Equipo, responses=errores(400, 404, 503, 504),
             summary="Ficha de un equipo")
 def obtener_equipo(codigo: EquipoCodigo):
     return servicios.equipo(codigo)
 
 
-@router.get("/jugadores", response_model=PaginaJugadores, responses=errores(400, 503),
+@router.get("/jugadores", response_model=PaginaJugadores, responses=errores(400, 503, 504),
             summary="Plantel de un equipo, filtrado por posición y paginado por dorsal")
 def listar_jugadores(equipoCodigo: Annotated[str, Query(pattern=r"^E[0-9]{3}$", examples=["E010"])],
                      posicion: Literal["Arquero", "Defensor", "Mediocampista", "Delantero"] | None = None,

@@ -10,15 +10,15 @@ router = APIRouter(tags=["Redis"], dependencies=[Depends(fuente("Redis"))])
 SesionId = Annotated[str, Path(pattern=r"^[A-Za-z0-9_-]{8,64}$", description="Identificador de sesión")]
 
 
-@router.get("/sesiones/{sesionId}", response_model=Sesion, responses=errores(400, 404, 503),
+@router.get("/sesiones/{sesionId}", response_model=Sesion, responses=errores(400, 404, 503, 504),
             summary="Obtiene una sesión activa")
 def obtener_sesion(sesionId: SesionId):
-    """404 si la sesión no existe o expiró; 503 si Redis no responde."""
+    """404 si la sesión no existe o expiró; 503 si Redis rechaza la conexión; 504 si no responde a tiempo."""
     return servicios.sesion(sesionId)
 
 
 @router.delete("/sesiones/{sesionId}", status_code=status.HTTP_204_NO_CONTENT,
-               responses=errores(400, 404, 503), summary="Invalida una sesión")
+               responses=errores(400, 404, 503, 504), summary="Invalida una sesión")
 def eliminar_sesion(sesionId: SesionId):
     servicios.eliminar_sesion(sesionId)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -3,15 +3,13 @@
 Usa la API HTTP /api/v3/query_sql con parámetros ($partido, $desde, $hasta): los valores del
 cliente nunca se concatenan en el SQL.
 """
-import logging
 from datetime import datetime
 
 import httpx
 
 from app.config import config
-from app.errores import DependenciaNoDisponible
+from app.errores import DependenciaNoDisponible, DependenciaTimeout
 
-log = logging.getLogger("api.influx")
 _cliente = httpx.Client(base_url=config.influx_url, timeout=config.timeout_s,
                         headers={"Authorization": f"Bearer {config.influx_token}"})
 
@@ -33,18 +31,29 @@ ORDER BY 1, equipo_id
 """
 
 
-def consultar(partido: str, desde: datetime, hasta: datetime, agregacion: str) -> list[dict]:
-    cuerpo = {"db": config.influx_database, "q": _RAW if agregacion == "raw" else _MINUTO, "format": "json",
-              "params": {"partido": partido, "desde": desde.isoformat(), "hasta": hasta.isoformat()}}
+def _sql(q: str, params: dict) -> list[dict]:
+    cuerpo = {"db": config.influx_database, "q": q, "format": "json", "params": params}
     try:
         respuesta = _cliente.post("/api/v3/query_sql", json=cuerpo)
+    except httpx.TimeoutException as e:
+        raise DependenciaTimeout("InfluxDB", type(e).__name__)
     except httpx.HTTPError as e:
-        log.warning("InfluxDB no disponible: %s", type(e).__name__)
-        raise DependenciaNoDisponible("InfluxDB")
-    if respuesta.status_code in (401, 403) or respuesta.status_code >= 500:
-        log.warning("InfluxDB respondió %s", respuesta.status_code)
-        raise DependenciaNoDisponible("InfluxDB")
+        raise DependenciaNoDisponible("InfluxDB", type(e).__name__)
+    # 401/403: token inválido; 404: database inexistente; 5xx: error del servidor.
+    if respuesta.status_code in (401, 403, 404) or respuesta.status_code >= 500:
+        raise DependenciaNoDisponible("InfluxDB", f"HTTP {respuesta.status_code}")
     respuesta.raise_for_status()
+    return respuesta.json()
+
+
+def consultar(partido: str, desde: datetime, hasta: datetime, agregacion: str) -> list[dict]:
+    filas = _sql(_RAW if agregacion == "raw" else _MINUTO,
+                 {"partido": partido, "desde": desde.isoformat(), "hasta": hasta.isoformat()})
     return [{"time": f["time"] + "Z", "equipoId": f["equipo_id"], "posesionPct": f.get("posesion_pct"),
              "pasesCompletados": f.get("pases_completados"), "tiros": f.get("tiros")}
-            for f in respuesta.json()]
+            for f in filas]
+
+
+def ping() -> None:
+    """Token, database y motor SQL: una consulta constante, sin leer datos."""
+    _sql("SELECT 1", {})

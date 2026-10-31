@@ -11,7 +11,7 @@ JugadorCodigo = Annotated[str, Path(pattern=r"^E[0-9]{3}-J[0-9]{2}$", descriptio
                                     examples=["E001-J09"])]
 
 
-@router.get("/jugadores/{codigo}/partidos", response_model=PartidosDeJugador, responses=errores(400, 404, 503),
+@router.get("/jugadores/{codigo}/partidos", response_model=PartidosDeJugador, responses=errores(400, 404, 503, 504),
             summary="Partidos que jugó un jugador y contra qué rival (recorrido del grafo)")
 def partidos_de_jugador(codigo: JugadorCodigo):
     return servicios.partidos_de_jugador(codigo)

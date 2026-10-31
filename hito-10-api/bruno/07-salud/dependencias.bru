@@ -1,0 +1,18 @@
+meta {
+  name: GET diagnóstico por dependencia (6 bases)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/salud/dependencias
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200 con el estado de las 6 bases", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().dependencias.length).to.equal(6);
+  });
+}

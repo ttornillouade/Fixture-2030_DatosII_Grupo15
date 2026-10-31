@@ -1,0 +1,24 @@
+FIXTURE 2030 — HITO 11 — API del Hito 10 (cadena completa)
+Fecha:    2026-10-30 21:09:05 -03 (2026-10-31T00:09:05Z)
+Commit:   064e2b5
+Entorno:  notebook Darwin arm64, Python 3.12.15, Docker 29.5.3
+Origen:   las pruebas corren en la notebook, el mismo host que la API: localhost = la notebook
+Modo:     completo; productos: todos; TIMEOUT_S de la configuración
+Columnas: resultado, producto, capa, duración, prueba: detalle
+
+OK    api       api               1.4 ms  GET /salud: 200 con datos (esperado 200: liveness: el proceso responde sin consultar bases) | req-7be825ae01c7 | log: GET /salud fuente=- status=200 1ms causa=- req-7be825ae01c7
+OK    api       api              82.3 ms  GET /salud/dependencias: estado up: MongoDB=up, Neo4j=up, Cassandra=up, Redis=up, InfluxDB=up, IRIS=up (esperado 200: diagnóstico: un ping por base) | req-065f68a3e4a1 | log: GET /salud/dependencias fuente=Salud status=200 81ms causa=- req-065f68a3e4a1
+OK    mongodb   api               7.5 ms  GET /equipos/E010: 200 con datos (esperado 200: operación exitosa) | req-5b25e056e654 | log: GET /equipos/E010 fuente=MongoDB status=200 6ms causa=- req-5b25e056e654
+OK    mongodb   api               3.7 ms  GET /equipos/E999: 404 TEAM_NOT_FOUND (esperado 404: recurso inexistente) | req-ed806362828f | log: GET /equipos/E999 fuente=MongoDB status=404 2ms causa=- req-ed806362828f
+OK    mongodb   api               8.2 ms  GET /jugadores?equipoCodigo=E999: 200 vacío (items=[]): ausencia válida (esperado 200: respuesta vacía válida) | req-ce75f717d9e9 | log: GET /jugadores fuente=MongoDB status=200 6ms causa=- req-ce75f717d9e9
+OK    mongodb   api               3.0 ms  GET /equipos/X1: 400 VALIDATION_ERROR (esperado 400: error de validación: no llega a la base) | req-e9bc1cfcef9a | log: GET /equipos/X1 fuente=MongoDB status=400 1ms causa=- req-e9bc1cfcef9a
+OK    neo4j     api              22.9 ms  GET /jugadores/E001-J09/partidos: 200 con datos (esperado 200: operación exitosa) | req-ce9e5963faa7 | log: GET /jugadores/E001-J09/partidos fuente=Neo4j status=200 21ms causa=- req-ce9e5963faa7
+OK    neo4j     api              13.0 ms  GET /jugadores/E999-J99/partidos: 404 PLAYER_NOT_FOUND (esperado 404: recurso inexistente) | req-ccb9142b1b8e | log: GET /jugadores/E999-J99/partidos fuente=Neo4j status=404 12ms causa=- req-ccb9142b1b8e
+OK    cassandra api              10.8 ms  GET /partidos/P001/comentarios?bucket=2030-06-08T20:00:00Z&limit=2: 200 con datos (esperado 200: operación exitosa) | req-5286830e0f84 | log: GET /partidos/P001/comentarios fuente=Cassandra status=200 9ms causa=- req-5286830e0f84
+OK    cassandra api               2.2 ms  GET /partidos/P001/comentarios?bucket=2030-06-08T20:03:00Z: 400 VALIDATION_ERROR (esperado 400: error de validación: bucket desalineado) | req-a39a786cd043 | log: GET /partidos/P001/comentarios fuente=Cassandra status=400 1ms causa=- req-a39a786cd043
+OK    redis     api               5.9 ms  GET /sesiones/s-demo-001: 200 con datos (esperado 200: operación exitosa (requiere preparar_datos_demo.sh)) | req-5b49bb8b464d | log: GET /sesiones/s-demo-001 fuente=Redis status=200 4ms causa=- req-5b49bb8b464d
+OK    redis     api               4.2 ms  GET /sesiones/s-no-existe: 404 SESSION_EXPIRED_OR_NOT_FOUND (esperado 404: clave ausente o expirada: Redis responde) | req-55a8f1747b12 | log: GET /sesiones/s-no-existe fuente=Redis status=404 2ms causa=- req-55a8f1747b12
+OK    influxdb  api              19.2 ms  GET /partidos/P001/estadisticas?desde=2030-06-08T16:00:00Z&hasta=2030-06-08T16:00:02Z: 200 con datos (esperado 200: operación exitosa) | req-869537548d65 | log: GET /partidos/P001/estadisticas fuente=InfluxDB status=200 17ms causa=- req-869537548d65
+OK    influxdb  api              10.5 ms  GET /partidos/P001/estadisticas?desde=2031-06-08T16:00:00Z&hasta=2031-06-08T16:10:00Z: 200 vacío (puntos=[]): ausencia válida (esperado 200: respuesta vacía válida: ventana sin puntos) | req-b7c942cf6688 | log: GET /partidos/P001/estadisticas fuente=InfluxDB status=200 8ms causa=- req-b7c942cf6688
+OK    iris      api               8.8 ms  GET /partidos/P001/detalle: 200 con datos (esperado 200: operación exitosa) | req-7b5981b217bf | log: GET /partidos/P001/detalle fuente=IRIS status=200 7ms causa=- req-7b5981b217bf
+OK    iris      api               6.3 ms  GET /partidos/P999/detalle: 404 MATCH_NOT_FOUND (esperado 404: recurso inexistente) | req-5b3c46e6c0d8 | log: GET /partidos/P999/detalle fuente=IRIS status=404 4ms causa=- req-5b3c46e6c0d8

@@ -46,7 +46,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -118,7 +124,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -161,7 +173,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -220,7 +238,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -289,7 +313,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -332,7 +362,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -401,7 +437,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -445,7 +487,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -455,7 +503,8 @@ paths:
       tags:
       - Redis
       summary: Obtiene una sesión activa
-      description: 404 si la sesión no existe o expiró; 503 si Redis no responde.
+      description: 404 si la sesión no existe o expiró; 503 si Redis rechaza la conexión;
+        504 si no responde a tiempo.
       operationId: obtener_sesion_sesiones__sesionId__get
       parameters:
       - name: sesionId
@@ -487,7 +536,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
           content:
             application/json:
               schema:
@@ -523,11 +578,52 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: La fuente de datos no está disponible
+          description: La fuente de datos rechazó la conexión o falló
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '504':
+          description: La fuente de datos no respondió dentro de TIMEOUT_S
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /salud:
+    get:
+      tags:
+      - Salud
+      summary: 'Liveness: el proceso de la API responde'
+      description: 'No consulta ninguna base: solo indica que el proceso está vivo
+        y atiende requests.'
+      operationId: salud_salud_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Salud'
+  /salud/dependencias:
+    get:
+      tags:
+      - Salud
+      summary: Diagnóstico por dependencia (un ping a cada base)
+      description: 'Responde 200 aunque haya bases caídas: es un informe, y el estado
+        de cada base va en el cuerpo
+
+        (up, down, unknown, not_configured). Hace 6 pings en paralelo y tarda a lo
+        sumo TIMEOUT_S: no se
+
+        usa en las requests normales.'
+      operationId: salud_dependencias_salud_dependencias_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaludDependencias'
 components:
   schemas:
     CambioEstado:
@@ -675,6 +771,36 @@ components:
       - agregacion
       - puntos
       title: Estadisticas
+    EstadoDependencia:
+      properties:
+        nombre:
+          type: string
+          title: Nombre
+        estado:
+          type: string
+          enum:
+          - up
+          - down
+          - unknown
+          - not_configured
+          title: Estado
+        codigo:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Codigo
+          description: DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT o INTERNAL_ERROR
+            si falló
+        ms:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Ms
+      type: object
+      required:
+      - nombre
+      - estado
+      title: EstadoDependencia
     Evento:
       properties:
         minuto:
@@ -870,6 +996,35 @@ components:
       - time
       - equipoId
       title: PuntoEstadistica
+    Salud:
+      properties:
+        estado:
+          type: string
+          const: up
+          title: Estado
+      type: object
+      required:
+      - estado
+      title: Salud
+    SaludDependencias:
+      properties:
+        estado:
+          type: string
+          enum:
+          - up
+          - degraded
+          - down
+          title: Estado
+        dependencias:
+          items:
+            $ref: '#/components/schemas/EstadoDependencia'
+          type: array
+          title: Dependencias
+      type: object
+      required:
+      - estado
+      - dependencias
+      title: SaludDependencias
     Sesion:
       properties:
         sesionId:

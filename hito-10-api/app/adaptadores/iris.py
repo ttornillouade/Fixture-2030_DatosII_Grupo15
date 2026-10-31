@@ -4,16 +4,15 @@ Lectura: proyección SQL de Fixture.Partido y Fixture.Evento, navegando Evento -
 Escritura: un único UPDATE condicionado al estado de origen; si otro proceso cambió el estado en el
 medio, no coincide ninguna fila y no se modifica nada (no hay lectura-y-escritura).
 """
-import logging
 import threading
 
 import iris
 from iris.dbapi import InterfaceError, OperationalError
 
+from app.adaptadores.limite import con_limite
 from app.config import config
 from app.errores import Conflicto, DependenciaNoDisponible, NoEncontrado
 
-log = logging.getLogger("api.iris")
 _lock = threading.Lock()  # la conexión de IRIS no es segura entre hilos
 _estado: dict = {}
 # Transiciones válidas: estado nuevo -> estado del que tiene que partir.
@@ -36,14 +35,17 @@ def _conexion():
 
 
 def _ejecutar(operacion):
+    return con_limite("IRIS", _ejecutar_sin_limite, operacion)
+
+
+def _ejecutar_sin_limite(operacion):
     with _lock:
         try:
             return operacion(_conexion().cursor())
         # RuntimeError al conectar; OperationalError/InterfaceError si se corta una conexión abierta.
         except (RuntimeError, OSError, ConnectionError, OperationalError, InterfaceError) as e:
-            log.warning("IRIS no disponible: %s", type(e).__name__)
             _estado.clear()
-            raise DependenciaNoDisponible("IRIS")
+            raise DependenciaNoDisponible("IRIS", type(e).__name__)
 
 
 def _partido(cursor, codigo: str):
@@ -73,3 +75,8 @@ def cambiar_estado(codigo: str, nuevo: str) -> None:
             raise Conflicto(f"Transición ilegal: {actual} -> {nuevo}", "ILLEGAL_TRANSITION")
 
     _ejecutar(actualizar)
+
+
+def ping() -> None:
+    """Superserver, usuario y namespace (al conectar) y motor SQL: una consulta constante."""
+    _ejecutar(lambda cursor: cursor.execute("SELECT 1"))

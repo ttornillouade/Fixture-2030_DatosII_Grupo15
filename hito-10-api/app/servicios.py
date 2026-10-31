@@ -1,10 +1,13 @@
 """Servicios: validan la request y aplican las reglas de cada caso de uso antes de llamar al adaptador."""
 import base64
 import binascii
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 from app.adaptadores import cassandra, influx, iris, mongodb, neo4j_grafo, redis_sesiones
-from app.errores import Validacion
+from app.config import config
+from app.errores import ErrorApi, Validacion
 
 # Ventana máxima por consulta temporal: evita traer el histórico completo del partido.
 VENTANA_MAXIMA = {"raw": timedelta(minutes=15), "minuto": timedelta(hours=3)}
@@ -91,3 +94,37 @@ def sesion(sesion_id: str) -> dict:
 
 def eliminar_sesion(sesion_id: str) -> None:
     redis_sesiones.eliminar(sesion_id)
+
+
+# --- Salud: diagnóstico por dependencia ---------------------------------------------------
+_PINGS = {"MongoDB": mongodb.ping, "Neo4j": neo4j_grafo.ping, "Cassandra": cassandra.ping,
+          "Redis": redis_sesiones.ping, "InfluxDB": influx.ping, "IRIS": iris.ping}
+# Dependencias que necesitan un secreto en .env: sin él, el módulo no está preparado en ese entorno.
+_SECRETO = {"Neo4j": "neo4j_password", "InfluxDB": "influx_token", "IRIS": "iris_password"}
+_chequeos = ThreadPoolExecutor(max_workers=len(_PINGS), thread_name_prefix="salud")
+
+
+def _chequear(nombre: str) -> dict:
+    """La causa técnica no forma parte de la respuesta: la ruta la pasa al log de la request."""
+    if nombre in _SECRETO and not getattr(config, _SECRETO[nombre]):
+        return {"nombre": nombre, "estado": "not_configured", "codigo": None, "ms": None, "causa": None}
+    inicio = time.perf_counter()
+    causa = None
+    try:
+        _PINGS[nombre]()
+        estado, codigo = "up", None
+    except ErrorApi as e:  # 503 o 504: se intentó y falló
+        estado, codigo, causa = "down", e.code, e.causa
+    except Exception as e:  # falla no clasificada: no se puede afirmar el estado
+        estado, codigo, causa = "unknown", "INTERNAL_ERROR", type(e).__name__
+    return {"nombre": nombre, "estado": estado, "codigo": codigo, "causa": causa,
+            "ms": round((time.perf_counter() - inicio) * 1000, 1)}
+
+
+def salud_dependencias() -> dict:
+    """Un ping por base, en paralelo: la respuesta tarda a lo sumo TIMEOUT_S."""
+    resultados = list(_chequeos.map(_chequear, _PINGS))
+    evaluadas = [r for r in resultados if r["estado"] != "not_configured"]
+    arriba = sum(r["estado"] == "up" for r in evaluadas)
+    estado = "up" if arriba == len(evaluadas) else "down" if arriba == 0 else "degraded"
+    return {"estado": estado, "dependencias": resultados}
