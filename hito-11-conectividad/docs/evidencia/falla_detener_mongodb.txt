@@ -1,0 +1,28 @@
+FIXTURE 2030 — HITO 11 — Falla controlada: detener mongodb (fixture2030-mongodb)
+Fecha: 2026-10-30 21:09:09 -03 | Commit: 064e2b5 | Origen: notebook | API: http://localhost:8000
+
+== 1. Condición inicial
+Contenedor: running (healthy)
+GET /equipos/E010 -> HTTP 200 en 4 ms | req-15e81f801233 | {"codigo":"E010","nombre":"Seleccion 010","pais":"Pais 010","confederacion":"AFC","grupo":"C"}
+Huella de los datos: 78a03c88c3d15aec | volúmenes: ~/docker/data/mongodb->/data/db 
+Salud: global=up; mongodb=up codigo=None ms=3.6
+
+== 2. Cambio aplicado: docker stop fixture2030-mongodb (21:09:09)
+
+== 3. Durante la falla
+GET /equipos/E010 -> HTTP 503 en 3287 ms | req-b249174b6b99 | {"code":"DEPENDENCY_UNAVAILABLE","message":"La fuente MongoDB no está disponible en este momento","requestId":"req-b249174b6b99"}
+Log de la API:
+  INFO api GET /equipos/E010 fuente=MongoDB status=503 3285ms causa=ServerSelectionTimeoutError (conexión rechazada) req-b249174b6b99
+Otra fuente: GET /partidos/P001/detalle -> HTTP 200 en 8 ms 
+Salud: global=degraded; mongodb=down codigo=DEPENDENCY_UNAVAILABLE ms=3252.2
+TCP desde la notebook:
+  FALLA mongodb   tcp               0.5 ms  MongoDB: localhost:27017: ConnectionRefusedError: connection refused: el host responde pero no hay listener en el puerto
+
+== 4. Recuperación: docker start fixture2030-mongodb (21:09:19)
+La ruta volvió a responder 200 a los 1 s, sin reiniciar la API
+
+== 5. Después de recuperar (se repite la prueba)
+GET /equipos/E010 -> HTTP 200 en 5 ms | req-9907c40d1acb | {"codigo":"E010","nombre":"Seleccion 010","pais":"Pais 010","confederacion":"AFC","grupo":"C"}
+Huella de los datos: 78a03c88c3d15aec (igual a la inicial: datos conservados)
+Volúmenes: los mismos montajes, no se borró nada
+Salud: global=up; mongodb=up codigo=None ms=9.4

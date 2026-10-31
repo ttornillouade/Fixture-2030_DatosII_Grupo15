@@ -1,0 +1,28 @@
+FIXTURE 2030 — HITO 11 — Falla controlada: pausar iris (fixture2030-iris)
+Fecha: 2026-10-30 21:09:28 -03 | Commit: 064e2b5 | Origen: notebook | API: http://localhost:8000
+
+== 1. Condición inicial
+Contenedor: running (healthy)
+GET /partidos/P001/detalle -> HTTP 200 en 3 ms | req-0874b7ccb6ac | {"codigo":"P001","estado":"FINALIZADO","eventos":[{"minuto":33,"tipo":"Gol","jugador":"Nombre001_09 Apellido001_09","dorsal":9},{"minuto":50,"tipo":"TarjetaAmar
+Huella de los datos: 74a363db2705b377 | volúmenes: ~/docker/data/iris->/durable 
+Salud: global=up; iris=up codigo=None ms=0.8
+
+== 2. Cambio aplicado: docker pause fixture2030-iris (21:09:28)
+
+== 3. Durante la falla
+GET /partidos/P001/detalle -> HTTP 504 en 3007 ms | req-a05f7c25bd21 | {"code":"DEPENDENCY_TIMEOUT","message":"La fuente IRIS no respondió a tiempo","requestId":"req-a05f7c25bd21"}
+Log de la API:
+  INFO api GET /partidos/P001/detalle fuente=IRIS status=504 3006ms causa=sin respuesta en 3 s (límite de la API) req-a05f7c25bd21
+Otra fuente: GET /equipos/E010 -> HTTP 200 en 6 ms 
+Salud: global=degraded; iris=down codigo=DEPENDENCY_TIMEOUT ms=3005.5
+TCP desde la notebook:
+  OK    iris      tcp               1.0 ms  Superserver: localhost:1972: conexión exitosa: hay un listener
+
+== 4. Recuperación: docker unpause fixture2030-iris (21:09:34)
+La ruta volvió a responder 200 a los 0 s, sin reiniciar la API
+
+== 5. Después de recuperar (se repite la prueba)
+GET /partidos/P001/detalle -> HTTP 200 en 5 ms | req-ce1cb5ec336f | {"codigo":"P001","estado":"FINALIZADO","eventos":[{"minuto":33,"tipo":"Gol","jugador":"Nombre001_09 Apellido001_09","dorsal":9},{"minuto":50,"tipo":"TarjetaAmar
+Huella de los datos: 74a363db2705b377 (igual a la inicial: datos conservados)
+Volúmenes: los mismos montajes, no se borró nada
+Salud: global=up; iris=up codigo=None ms=2.9

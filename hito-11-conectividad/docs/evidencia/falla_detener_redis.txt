@@ -1,0 +1,28 @@
+FIXTURE 2030 — HITO 11 — Falla controlada: detener redis (fixture2030-redis)
+Fecha: 2026-10-30 21:09:06 -03 | Commit: 064e2b5 | Origen: notebook | API: http://localhost:8000
+
+== 1. Condición inicial
+Contenedor: running (healthy)
+GET /sesiones/s-demo-001 -> HTTP 200 en 4 ms | req-14e86fc9a5a3 | {"sesionId":"s-demo-001","usuarioId":"U000042","estado":"AUTHENTICATED","locale":"es-AR","creadaEn":"2026-10-31T00:08:49Z","expiraEnSegundos":1783}
+Huella de los datos: c7d13bee3b3ca10b | volúmenes: ~/docker/data/redis->/data 
+Salud: global=up; redis=up codigo=None ms=1.1
+
+== 2. Cambio aplicado: docker stop fixture2030-redis (21:09:06)
+
+== 3. Durante la falla
+GET /sesiones/s-demo-001 -> HTTP 503 en 3 ms | req-6c7d95855a64 | {"code":"DEPENDENCY_UNAVAILABLE","message":"La fuente Redis no está disponible en este momento","requestId":"req-6c7d95855a64"}
+Log de la API:
+  INFO api GET /sesiones/s-demo-001 fuente=Redis status=503 2ms causa=ConnectionError req-6c7d95855a64
+Otra fuente: GET /equipos/E010 -> HTTP 200 en 4 ms 
+Salud: global=degraded; redis=down codigo=DEPENDENCY_UNAVAILABLE ms=1.0
+TCP desde la notebook:
+  FALLA redis     tcp               0.7 ms  RESP: localhost:6379: ConnectionRefusedError: connection refused: el host responde pero no hay listener en el puerto
+
+== 4. Recuperación: docker start fixture2030-redis (21:09:07)
+La ruta volvió a responder 200 a los 1 s, sin reiniciar la API
+
+== 5. Después de recuperar (se repite la prueba)
+GET /sesiones/s-demo-001 -> HTTP 200 en 5 ms | req-756ba5e9e1a3 | {"sesionId":"s-demo-001","usuarioId":"U000042","estado":"AUTHENTICATED","locale":"es-AR","creadaEn":"2026-10-31T00:08:49Z","expiraEnSegundos":1781}
+Huella de los datos: c7d13bee3b3ca10b (igual a la inicial: datos conservados)
+Volúmenes: los mismos montajes, no se borró nada
+Salud: global=up; redis=up codigo=None ms=0.9

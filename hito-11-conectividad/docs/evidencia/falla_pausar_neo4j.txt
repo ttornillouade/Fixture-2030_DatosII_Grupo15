@@ -1,0 +1,28 @@
+FIXTURE 2030 — HITO 11 — Falla controlada: pausar neo4j (fixture2030-neo4j)
+Fecha: 2026-10-30 21:09:21 -03 | Commit: 064e2b5 | Origen: notebook | API: http://localhost:8000
+
+== 1. Condición inicial
+Contenedor: running (healthy)
+GET /jugadores/E001-J09/partidos -> HTTP 200 en 34 ms | req-3b90bdd92627 | {"jugadorCodigo":"E001-J09","partidos":[{"partidoCodigo":"P001","fecha":"2030-06-08","fase":"Grupos","titular":true,"rivalCodigo":"E002"},{"partidoCodigo":"P002
+Huella de los datos: bd255cf038116dc0 | volúmenes: ~/docker/data/neo4j->/data 
+Salud: global=up; neo4j=up codigo=None ms=21.5
+
+== 2. Cambio aplicado: docker pause fixture2030-neo4j (21:09:21)
+
+== 3. Durante la falla
+GET /jugadores/E001-J09/partidos -> HTTP 504 en 3009 ms | req-5e02dd42eed1 | {"code":"DEPENDENCY_TIMEOUT","message":"La fuente Neo4j no respondió a tiempo","requestId":"req-5e02dd42eed1"}
+Log de la API:
+  INFO api GET /jugadores/E001-J09/partidos fuente=Neo4j status=504 3007ms causa=sin respuesta en 3 s (límite de la API) req-5e02dd42eed1
+Otra fuente: GET /equipos/E010 -> HTTP 200 en 8 ms 
+Salud: global=degraded; neo4j=down codigo=DEPENDENCY_TIMEOUT ms=3002.3
+TCP desde la notebook:
+  OK    neo4j     tcp               0.5 ms  Bolt: localhost:7687: conexión exitosa: hay un listener
+
+== 4. Recuperación: docker unpause fixture2030-neo4j (21:09:27)
+La ruta volvió a responder 200 a los 0 s, sin reiniciar la API
+
+== 5. Después de recuperar (se repite la prueba)
+GET /jugadores/E001-J09/partidos -> HTTP 200 en 11 ms | req-4a43d754b893 | {"jugadorCodigo":"E001-J09","partidos":[{"partidoCodigo":"P001","fecha":"2030-06-08","fase":"Grupos","titular":true,"rivalCodigo":"E002"},{"partidoCodigo":"P002
+Huella de los datos: bd255cf038116dc0 (igual a la inicial: datos conservados)
+Volúmenes: los mismos montajes, no se borró nada
+Salud: global=up; neo4j=up codigo=None ms=8.7
