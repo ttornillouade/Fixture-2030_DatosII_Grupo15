@@ -22,9 +22,10 @@ de acceso.
 | `GET /partidos/{codigo}/estadisticas?desde&hasta&agregacion` | InfluxDB | RF7: ventana temporal, cruda o por minuto (SQL parametrizado) |
 | `GET /partidos/{codigo}/detalle` | IRIS | RF8: entidad compleja, el partido con sus eventos (clases del Hito 9) |
 | `PATCH /partidos/{codigo}/estado` | IRIS | RF8 y 5.10: transición validada (`PROGRAMADO → EN_JUEGO → FINALIZADO`) |
+| `GET /salud` · `GET /salud/dependencias` | — · las 6 | Liveness y diagnóstico por dependencia (Hito 11) |
 
-Errores: 400 validación, 404 inexistente, 409 transición ilegal, 503 base no disponible (timeout 3 s),
-siempre como `{code, message, requestId}`.
+Errores: 400 validación, 404 inexistente, 409 transición ilegal, 503 base que rechaza la conexión,
+504 base que no responde en 3 s (Hito 11), siempre como `{code, message, requestId}`.
 
 ## Documentación
 

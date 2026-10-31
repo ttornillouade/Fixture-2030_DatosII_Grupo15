@@ -12,7 +12,7 @@ Guarda la salida en `docs/evidencia/pruebas_<fecha>.txt` y ejecuta:
 
 1. **Conectividad** de las seis bases con su cliente nativo.
 2. **Contrato:** `openapi/openapi.yaml` coincide con las rutas implementadas.
-3. **Colección Bruno** (`bruno/`): 33 requests con tests de estado y de contenido.
+3. **Colección Bruno** (`bruno/`): 35 requests con tests de estado y de contenido (incluye `/salud`).
 4. **Contraste:** la respuesta de la API junto a la misma consulta hecha con el cliente nativo (RF17).
 5. **Dependencias caídas:** se detienen Neo4j, Redis, IRIS e InfluxDB (sus datos persisten en disco) y se vuelven a levantar.
 6. **Latencia básica.**
@@ -23,7 +23,7 @@ La colección también se abre en la app de Bruno (carpeta `bruno/`, entorno `lo
 
 | Escenario | Dónde |
 |---|---|
-| Request válida por módulo | `01-mongodb-equipos` a `06-redis-sesiones` |
+| Request válida por módulo | `01-mongodb-equipos` a `06-redis-sesiones`; `07-salud` |
 | Parámetro inválido (400) | `equipo-codigo-invalido`, `plantel-sin-equipo`, `codigo-invalido`, `estado-invalido`, `ventana-excedida`, `rango-invertido`, `jugador-codigo-invalido`, `sin-bucket`, `bucket-desalineado`, `crear-vacio` |
 | Recurso inexistente (404) | `equipo-inexistente`, `02-iris-partidos/inexistente`, `jugador-inexistente` |
 | Respuesta vacía válida (200) | `plantel-vacio`, `ventana-sin-puntos` |
@@ -32,17 +32,18 @@ La colección también se abre en la app de Bruno (carpeta `bruno/`, entorno `lo
 | Escritura repetida | `crear-repetido` (otro `comentarioId`) e `iniciar-de-nuevo` (409, sin doble efecto) |
 | Paginación y ventanas | `plantel` → `plantel-siguiente`, `pagina` → `siguiente-pagina`, `ventana-excedida` |
 | Dependencia detenida (503) | Sección 5 de `ejecutar_pruebas.sh` |
+| Dependencia que no responde (504) | `hito-11-conectividad/scripts/prueba_falla.sh pausar <producto>` |
 | Documentación = respuesta real | Sección 2 (contrato) y los tests de Bruno |
 
 Efectos de la colección: crea 2 comentarios, invalida la sesión `s-demo-001` y lleva P128 a
 `FINALIZADO`. `scripts/preparar_datos_demo.sh` vuelve a crear la sesión y deja P128 en `PROGRAMADO`.
 
-## Resultados (`docs/evidencia/pruebas_20261030_194256.txt`)
+## Resultados (`docs/evidencia/pruebas_20261030_205308.txt`)
 
 - Conectividad: las 6 bases OK; MongoDB con 64 equipos y 1.536 jugadores, InfluxDB con 45.600 puntos e IRIS
   con 128 partidos (127 del Hito 5 y P128 de prueba).
 - Contrato: `openapi/openapi.yaml` coincide con el código.
-- Bruno: 33/33 requests, 38/38 tests.
+- Bruno: 35/35 requests, 40/40 tests.
 - Neo4j detenido: `GET /jugadores/E001-J09/partidos` responde 503 y `GET /partidos/P001/detalle` sigue en 200.
 - Redis detenido: `GET /sesiones/s-demo-001` responde 503 y `GET /equipos/E011` sigue en 200.
 - IRIS detenido: `GET /partidos/P001/detalle` responde 503 y `GET /equipos/E011` sigue en 200.

@@ -37,11 +37,12 @@ credenciales ni trazas: el detalle técnico queda solo en el log.
 | 400 | `VALIDATION_ERROR` | Parámetro, cuerpo o formato inválido |
 | 404 | `TEAM_NOT_FOUND`, `MATCH_NOT_FOUND`, `PLAYER_NOT_FOUND`, `SESSION_EXPIRED_OR_NOT_FOUND` | Recurso inexistente o sesión expirada |
 | 409 | `ILLEGAL_TRANSITION` | El estado actual del partido no permite la transición |
-| 503 | `DEPENDENCY_UNAVAILABLE` | La base no respondió dentro de `TIMEOUT_S` (3 s), está caída o rechazó las credenciales |
+| 503 | `DEPENDENCY_UNAVAILABLE` | La base rechazó la conexión (detenida, puerto cerrado), las credenciales o el contexto |
+| 504 | `DEPENDENCY_TIMEOUT` | La base aceptó la conexión pero no respondió dentro de `TIMEOUT_S` (3 s). En un `PATCH`, el resultado queda desconocido: hay que consultar el estado antes de reintentar |
 | 500 | `INTERNAL_ERROR` | Error no previsto |
 
 **Vacío no es error:** una ventana sin observaciones, un bucket sin comentarios o un plantel vacío
-devuelven 200 con la lista vacía. Si la base falla, la respuesta es 503: nunca un 200 vacío.
+devuelven 200 con la lista vacía. Si la base falla, la respuesta es 503 o 504: nunca un 200 vacío.
 
 ## Lectura, escritura e idempotencia
 

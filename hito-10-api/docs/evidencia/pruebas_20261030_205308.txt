@@ -1,0 +1,226 @@
+PRUEBAS API REST INTEGRADA — FIXTURE 2030 — 2026-10-30 20:53:08 -03
+Entorno: API en notebook (Darwin arm64), bases en Docker 29.5.3, TIMEOUT_S=3
+
+========== 1. Conectividad ==========
+OK     MongoDB   (fixture2030-mongodb, fixture2030): equipos=64 jugadores=1536
+OK     Redis     (fixture2030-redis): PONG
+OK     Cassandra (fixture2030-cassandra, fixture2030_comments): (1 rows)
+OK     Neo4j     (fixture2030-neo4j): 1536
+OK     InfluxDB  (http://localhost:8181, fixture2030_vivo): 45600
+OK     IRIS      (fixture2030-iris, USER): partidos=128
+
+========== 2. Contrato OpenAPI vs. código ==========
+OK: openapi/openapi.yaml coincide con las rutas implementadas
+
+========== 3. Colección Bruno ==========
+OK P128 en PROGRAMADO, sin eventos
+OK sesión s-demo-001 vigente por 30 minutos
+01-mongodb-equipos/equipo (200 OK) - 21 ms
+Tests
+   ✓ responde 200
+01-mongodb-equipos/equipo-inexistente (404 Not Found) - 7 ms
+Tests
+   ✓ responde 404
+01-mongodb-equipos/equipo-codigo-invalido (400 Bad Request) - 4 ms
+Tests
+   ✓ responde 400
+01-mongodb-equipos/plantel (200 OK) - 9 ms
+Tests
+   ✓ responde 200
+   ✓ trae cursor para la pagina siguiente
+01-mongodb-equipos/plantel-siguiente (200 OK) - 6 ms
+Tests
+   ✓ responde 200
+01-mongodb-equipos/plantel-sin-equipo (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+01-mongodb-equipos/plantel-vacio (200 OK) - 7 ms
+Tests
+   ✓ responde 200
+   ✓ lista vacia, no error
+02-iris-partidos/detalle (200 OK) - 15 ms
+Tests
+   ✓ responde 200
+02-iris-partidos/inexistente (404 Not Found) - 3 ms
+Tests
+   ✓ responde 404
+02-iris-partidos/codigo-invalido (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+02-iris-partidos/saltear-estado (409 Conflict) - 6 ms
+Tests
+   ✓ responde 409
+02-iris-partidos/iniciar (200 OK) - 6 ms
+Tests
+   ✓ responde 200
+02-iris-partidos/iniciar-de-nuevo (409 Conflict) - 5 ms
+Tests
+   ✓ responde 409
+02-iris-partidos/finalizar (200 OK) - 6 ms
+Tests
+   ✓ responde 200
+02-iris-partidos/estado-invalido (400 Bad Request) - 4 ms
+Tests
+   ✓ responde 400
+03-influxdb-estadisticas/raw (200 OK) - 47 ms
+Tests
+   ✓ responde 200
+03-influxdb-estadisticas/por-minuto (200 OK) - 19 ms
+Tests
+   ✓ responde 200
+03-influxdb-estadisticas/ventana-excedida (400 Bad Request) - 3 ms
+Tests
+   ✓ responde 400
+03-influxdb-estadisticas/rango-invertido (400 Bad Request) - 4 ms
+Tests
+   ✓ responde 400
+03-influxdb-estadisticas/ventana-sin-puntos (200 OK) - 10 ms
+Tests
+   ✓ responde 200
+   ✓ lista vacia, no error
+04-neo4j-relaciones/partidos-de-jugador (200 OK) - 60 ms
+Tests
+   ✓ responde 200
+   ✓ trae partidos con rival
+04-neo4j-relaciones/jugador-inexistente (404 Not Found) - 13 ms
+Tests
+   ✓ responde 404
+04-neo4j-relaciones/jugador-codigo-invalido (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+05-cassandra-comentarios/pagina (200 OK) - 31 ms
+Tests
+   ✓ responde 200
+05-cassandra-comentarios/siguiente-pagina (200 OK) - 20 ms
+Tests
+   ✓ responde 200
+05-cassandra-comentarios/sin-bucket (400 Bad Request) - 3 ms
+Tests
+   ✓ responde 400
+05-cassandra-comentarios/bucket-desalineado (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+05-cassandra-comentarios/crear (201 Created) - 25 ms
+Tests
+   ✓ responde 201
+05-cassandra-comentarios/crear-repetido (201 Created) - 9 ms
+Tests
+   ✓ responde 201
+   ✓ genera otro comentarioId
+05-cassandra-comentarios/crear-vacio (400 Bad Request) - 2 ms
+Tests
+   ✓ responde 400
+06-redis-sesiones/obtener (200 OK) - 11 ms
+Tests
+   ✓ responde 200
+06-redis-sesiones/eliminar (204 No Content) - 5 ms
+Tests
+   ✓ responde 204
+06-redis-sesiones/obtener-eliminada (404 Not Found) - 4 ms
+Tests
+   ✓ responde 404
+07-salud/salud (200 OK) - 2 ms
+Tests
+   ✓ responde 200 con estado up
+07-salud/dependencias (200 OK) - 19 ms
+Tests
+   ✓ responde 200 con el estado de las 6 bases
+
+📊 Execution Summary
+┌───────────────┬────────────────┐
+│ Metric        │     Result     │
+├───────────────┼────────────────┤
+│ Status        │     ✓ PASS     │
+├───────────────┼────────────────┤
+│ Requests      │ 35 (35 Passed) │
+├───────────────┼────────────────┤
+│ Tests         │     40/40      │
+├───────────────┼────────────────┤
+│ Assertions    │      0/0       │
+├───────────────┼────────────────┤
+│ Duration (ms) │      3716      │
+└───────────────┴────────────────┘
+
+========== 4. Contraste con el cliente nativo de cada base ==========
+--- MongoDB: GET /equipos/E010
+{"codigo":"E010","nombre":"Seleccion 010","pais":"Pais 010","confederacion":"AFC","grupo":"C"}
+{
+  _id: 'E010',
+  confederacion: 'AFC',
+  grupo: 'C',
+  nombre: 'Seleccion 010'
+}
+--- IRIS: GET /partidos/P001/detalle
+{"codigo":"P001","estado":"FINALIZADO","eventos":[{"minuto":33,"tipo":"Gol","jugador":"Nombre001_09 Apellido001_09","dorsal":9},{"minuto":50,"tipo":"TarjetaAmarilla","jugador":"Nombre002_14 Apellido002_14","dorsal":14},{"minuto":67,"tipo":"Cambio","jugador":"Nombre001_01 Apellido001_01","dorsal":1},{"minuto":84,"tipo":"Gol","jugador":"Nombre002_06 Apellido002_06","dorsal":6}]}
+Node: 63912be54637, Instance: IRIS
+Codigo	Estado	Minuto	Tipo	Nombre	Apellido	Dorsal
+P001	FINALIZADO	33	Gol	Nombre001_09	Apellido001_09	9
+P001	FINALIZADO	50	TarjetaAmarilla	Nombre002_14	Apellido002_14	14
+P001	FINALIZADO	67	Cambio	Nombre001_01	Apellido001_01	1
+P001	FINALIZADO	84	Gol	Nombre002_06	Apellido002_06	6
+4 Rows(s) Affected
+--- InfluxDB: GET /partidos/P001/estadisticas (2 s)
+{"partidoCodigo":"P001","desde":"2030-06-08T16:00:00Z","hasta":"2030-06-08T16:00:02Z","agregacion":"raw","puntos":[{"time":"2030-06-08T16:00:00Z","equipoId":"E001","posesionPct":49.57,"pasesCompletados":0,"tiros":0},{"time":"2030-06-08T16:00:00Z","equipoId":"E002","posesionPct":50.43,"pasesCompletados":0,"tiros":0},{"time":"2030-06-08T16:00:01Z","equipoId":"E001","posesionPct":49.44,"pasesCompletados":0,"tiros":0},{"time":"2030-06-08T16:00:01Z","equipoId":"E002","posesionPct":50.56,"pasesCompletados":0,"tiros":0}]}
++---------------------+-----------+--------------+-------------------+-------+
+| time                | equipo_id | posesion_pct | pases_completados | tiros |
++---------------------+-----------+--------------+-------------------+-------+
+| 2030-06-08T16:00:00 | E001      | 49.57        | 0                 | 0     |
+| 2030-06-08T16:00:00 | E002      | 50.43        | 0                 | 0     |
+| 2030-06-08T16:00:01 | E001      | 49.44        | 0                 | 0     |
+| 2030-06-08T16:00:01 | E002      | 50.56        | 0                 | 0     |
++---------------------+-----------+--------------+-------------------+-------+
+--- Neo4j: GET /jugadores/E001-J09/partidos
+{"jugadorCodigo":"E001-J09","partidos":[{"partidoCodigo":"P001","fecha":"2030-06-08","fase":"Grupos","titular":true,"rivalCodigo":"E002"},{"partidoCodigo":"P002","fecha":"2030-06-08","fase":"Grupos","titular":true,"rivalCodigo":"E003"},{"partidoCodigo":"P003","fecha":"2030-06-08","fase":"Grupos","titular":true,"rivalCodigo":"E004"},{"partidoCodigo":"P097","fecha":"2030-07-02","fase":"Dieciseisavos","titular":true,"rivalCodigo":"E002"},{"partidoCodigo":"P113","fecha":"2030-07-06","fase":"Octavos","titular":true,"rivalCodigo":"E002"},{"partidoCodigo":"P121","fecha":"2030-07-08","fase":"Cuartos","titular":true,"rivalCodigo":"E002"},{"partidoCodigo":"P125","fecha":"2030-07-09","fase":"Semifinal","titular":true,"rivalCodigo":"E002"},{"partidoCodigo":"P127","fecha":"2030-07-09","fase":"Final","titular":true,"rivalCodigo":"E002"}]}
+p.id, p.fecha, rival.id
+"P001", 2030-06-08, "E002"
+"P002", 2030-06-08, "E003"
+"P003", 2030-06-08, "E004"
+"P097", 2030-07-02, "E002"
+"P113", 2030-07-06, "E002"
+"P121", 2030-07-08, "E002"
+"P125", 2030-07-09, "E002"
+"P127", 2030-07-09, "E002"
+--- Cassandra: GET /partidos/P001/comentarios (limit=2)
+{"partidoCodigo":"P001","bucket":"2030-06-08T20:00:00Z","items":[{"comentarioId":"C001098298","partidoCodigo":"P001","usuarioId":"U048298","texto":"Comentario sintetico 1098298 sobre P001","creadoEn":"2030-06-08T20:04:57Z","estadoModeracion":"VISIBLE","reacciones":17},{"comentarioId":"C000828296","partidoCodigo":"P001","usuarioId":"U028296","texto":"Comentario sintetico 828296 sobre P001","creadoEn":"2030-06-08T20:04:55Z","estadoModeracion":"VISIBLE","reacciones":15}],"limit":2,"nextCursor":"MjAzMC0wNi0wOFQyMDowNDo1NSswMDowMHxDMDAwODI4Mjk2"}
+PAGING set to OFF
+
+ comentario_id | creado_en
+---------------+---------------------------------
+    C001098298 | 2030-06-08 20:04:57.000000+0000
+    C000828296 | 2030-06-08 20:04:55.000000+0000
+
+(2 rows)
+--- Redis: GET /sesiones/s-demo-001 (la colección Bruno la invalidó: se vuelve a crear)
+{"sesionId":"s-demo-001","usuarioId":"U000042","estado":"AUTHENTICATED","locale":"es-AR","creadaEn":"2026-10-30T23:53:22Z","expiraEnSegundos":1800}
+U000042
+1800
+
+========== 5. Dependencias caídas (se detienen y se vuelven a levantar; sus datos persisten en disco) ==========
+--- Neo4j detenido
+{"code":"DEPENDENCY_UNAVAILABLE","message":"La fuente Neo4j no está disponible en este momento","requestId":"req-42e74685983b"}
+-> HTTP 503 en 0.007328s
+Otra fuente durante la caída: GET /partidos/P001/detalle -> HTTP 200
+Neo4j levantado de nuevo -> HTTP 200, sin reiniciar la API
+--- Redis detenido
+{"code":"DEPENDENCY_UNAVAILABLE","message":"La fuente Redis no está disponible en este momento","requestId":"req-9f0b082f467c"}
+-> HTTP 503 en 0.010804s
+Otra fuente durante la caída: GET /equipos/E011 -> HTTP 200
+Redis levantado de nuevo -> GET /sesiones/s-demo-001 HTTP 200, sin reiniciar la API
+--- IRIS detenido
+{"code":"DEPENDENCY_UNAVAILABLE","message":"La fuente IRIS no está disponible en este momento","requestId":"req-b23930b0f187"}
+-> HTTP 503 en 0.003967s
+Otra fuente durante la caída: GET /equipos/E011 -> HTTP 200
+IRIS levantado de nuevo -> HTTP 200, sin reiniciar la API
+--- InfluxDB detenido
+{"code":"DEPENDENCY_UNAVAILABLE","message":"La fuente InfluxDB no está disponible en este momento","requestId":"req-e099bae3da05"}
+-> HTTP 503 en 0.014485s
+Otra fuente durante la caída: GET /partidos/P001/detalle -> HTTP 200
+InfluxDB levantado de nuevo -> HTTP 200, sin reiniciar la API
+
+========== 6. Latencia básica (20 requests secuenciales por endpoint, cliente curl en la misma notebook) ==========
+/equipos/E010                                                                                mediana=  2.6 ms  p95=  3.0 ms  max=  4.3 ms
+/jugadores?equipoCodigo=E010&posicion=Delantero                                              mediana=  3.0 ms  p95=  3.7 ms  max=  4.6 ms
+/partidos/P001/detalle                                                                       mediana=  2.9 ms  p95=  3.5 ms  max=  3.9 ms
+/partidos/P001/estadisticas?desde=2030-06-08T16:00:00Z&hasta=2030-06-08T17:00:00Z&agregacion=minuto mediana= 15.9 ms  p95= 20.4 ms  max= 22.2 ms
+/jugadores/E001-J09/partidos                                                                 mediana= 12.6 ms  p95= 22.7 ms  max= 43.1 ms
+/partidos/P001/comentarios?bucket=2030-06-08T20:00:00Z&limit=20                              mediana=  8.1 ms  p95= 11.5 ms  max= 15.2 ms

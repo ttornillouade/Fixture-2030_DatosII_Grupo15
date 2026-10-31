@@ -56,7 +56,8 @@ Si la API corriera en un contenedor de la misma red, los hosts serían los nombr
 - **InfluxDB:** las consultas exigen el token; solo `/health` y `/ping` responden sin él, para el
   *healthcheck* (`--disable-authz health,ping`).
 - **Respuestas:** los errores no incluyen URIs, consultas, credenciales ni trazas.
-- **Logs:** una línea por request con método, ruta, fuente, estado, duración y `requestId`. No se
+- **Logs:** una línea por request con método, ruta, fuente, estado, duración, causa técnica (si hubo
+  error) y `requestId`. No se
   registran query strings, cuerpos ni credenciales (`--no-access-log`).
 - **Superficie:** el cliente no elige colección, tabla, keyspace, nodo ni comando: cada ruta tiene su
   consulta fija y parametrizada.

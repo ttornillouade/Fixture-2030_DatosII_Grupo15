@@ -38,7 +38,18 @@ Cada módulo del TPO se expone sobre la base que lo implementó, como pide la co
 | IRIS | `iris.py` · intersystems-irispython | namespace `USER`, clases `Fixture.*` del Hito 9 | Detalle: proyección SQL de `Partido` y sus `Evento`, navegando `e.Jugador->Apellido`. Transición: `UPDATE ... WHERE Codigo = ? AND Estado = ?`, atómico; sin filas afectadas → 404 o 409 | `RuntimeError` al conectar; `OperationalError`, `InterfaceError` con la conexión abierta |
 
 Los adaptadores se conectan **al primer uso**: la API arranca aunque una base esté caída, y ese
-endpoint responde 503 mientras los demás siguen funcionando.
+endpoint responde 503 o 504 mientras los demás siguen funcionando.
+
+**Timeouts (Hito 11).** Ninguna request espera más de `TIMEOUT_S` (3 s) a una base. Si la base rechaza
+la conexión, la respuesta es 503; si la acepta y no contesta, 504. Cada adaptador lo decide con su
+driver: `timeoutMS` en MongoDB, `TimeoutError` en Redis, `OperationTimedOut`/`ReadTimeout` en
+Cassandra, `httpx.TimeoutException` en InfluxDB. Los drivers de Neo4j e IRIS solo limitan la conexión,
+no la lectura: sus operaciones corren con `adaptadores/limite.py`, que corta la espera a los 3 s
+(la operación sigue en un hilo hasta que la base responde o corta).
+
+**Salud.** `GET /salud` (liveness, sin consultar bases) y `GET /salud/dependencias` (un ping a cada
+base, en paralelo, con estado `up`, `down`, `unknown` o `not_configured`). El diseño, los estados y la
+propuesta de readiness están en `hito-11-conectividad/docs/health_readiness.md`.
 
 **IRIS y el modelo del Hito 9.** La API usa las clases del Hito 9 tal como quedaron después del
 feedback (`Partido` con `Codigo`, `Estado` y sus eventos hijos), sin agregarles propiedades ni
