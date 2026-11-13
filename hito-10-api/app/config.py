@@ -8,6 +8,9 @@ class Config(BaseSettings):
     # Tiempo máximo de espera por operación contra cualquier base (segundos).
     timeout_s: float = 3.0
 
+    # Hito 12: TTL de la caché en Redis de la primera página de comentarios (ms). 0 = desactivada.
+    cache_comentarios_ttl_ms: int = 0
+
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_database: str = "fixture2030"
 
