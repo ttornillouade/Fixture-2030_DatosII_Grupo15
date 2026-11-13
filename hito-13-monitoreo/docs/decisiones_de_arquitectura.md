@@ -127,6 +127,11 @@ mientras Cassandra tenía margen; la latencia medida dentro de la API subió de 
 **Mejoras aplicadas y medidas**: caché de la primera página en Redis (TTL 1 s) y varios procesos de la
 API. Resultados en `hito-12-carga-optimizacion/docs/hipotesis_y_optimizacion.md`.
 
+**Mejora transversal implementada a partir de la prueba de falla (Hito 13)**: corte rápido en el adaptador de
+Cassandra. Con la base caída, los 503 tardaban hasta 8 s (reconexión bajo un lock, requests en fila); con el
+corte rápido tardan 3 ms de mediana y la caída se reporta en 5 s en lugar de 30 s, a cambio de hasta 5 s más de
+recuperación (`limitaciones_y_evidencia.md`).
+
 **Mejora transversal propuesta (no implementada)**: aplicar el mismo patrón de *lectura caliente
 cacheada* a otros endpoints de alto tráfico durante un partido (detalle del partido en IRIS, estadísticas
 del último minuto en InfluxDB), con la tasa de aciertos visible en Grafana. Y para la observabilidad:
