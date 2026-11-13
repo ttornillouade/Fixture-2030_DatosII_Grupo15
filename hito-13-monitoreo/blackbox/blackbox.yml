@@ -1,0 +1,12 @@
+# Módulos del blackbox exporter. Timeouts menores que el scrape_timeout de Prometheus (4 s).
+modules:
+  tcp_connect:
+    prober: tcp
+    timeout: 3s
+  http_2xx:
+    prober: http
+    timeout: 3s
+    http:
+      valid_status_codes: [200]
+      method: GET
+      preferred_ip_protocol: ip4

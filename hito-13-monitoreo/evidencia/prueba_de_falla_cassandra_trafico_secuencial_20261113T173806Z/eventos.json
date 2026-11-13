@@ -1,0 +1,92 @@
+{
+  "consultas_promql": {
+    "dependencia_up": "fixture2030_dependencia_up{base=\"Cassandra\"}",
+    "sonda_tcp": "probe_success{job=\"sonda_tcp\",componente=\"cassandra\"}",
+    "req_s_ok": "sum(rate(fixture2030_http_requests_total{fuente=\"Cassandra\",status=~\"2..\"}[30s]))",
+    "req_s_5xx": "sum(rate(fixture2030_http_requests_total{fuente=\"Cassandra\",status=~\"5..\"}[30s]))",
+    "p95_s": "histogram_quantile(0.95, sum by (le) (rate(fixture2030_http_request_duration_seconds_bucket{fuente=\"Cassandra\"}[30s])))",
+    "req_s_ok_MongoDB": "sum(rate(fixture2030_http_requests_total{fuente=\"MongoDB\",status=~\"2..\"}[30s]))",
+    "req_s_ok_Redis": "sum(rate(fixture2030_http_requests_total{fuente=\"Redis\",status=~\"2..\"}[30s]))"
+  },
+  "eventos": [
+    {
+      "utc": "2026-11-13T17:38:06+00:00",
+      "evento": "inicio_trafico"
+    },
+    {
+      "utc": "2026-11-13T17:39:06+00:00",
+      "evento": "docker_stop",
+      "contenedor": "fixture2030-cassandra"
+    },
+    {
+      "utc": "2026-11-13T17:39:50+00:00",
+      "evento": "diagnostico_durante_la_caida",
+      "api_salud": "degraded",
+      "segundos": 10.05
+    },
+    {
+      "utc": "2026-11-13T17:40:10+00:00",
+      "evento": "alertas_al_final_de_la_caida",
+      "activas": [
+        "BaseNoDisponible",
+        "SondaTCPFallando"
+      ]
+    },
+    {
+      "utc": "2026-11-13T17:40:10+00:00",
+      "evento": "docker_start",
+      "contenedor": "fixture2030-cassandra"
+    },
+    {
+      "utc": "2026-11-13T17:40:29+00:00",
+      "evento": "contenedor_healthy",
+      "segundos_hasta_healthy": 18.7
+    },
+    {
+      "utc": "2026-11-13T17:41:59+00:00",
+      "evento": "fin_trafico"
+    }
+  ],
+  "diagnostico_api_durante_la_caida": {
+    "estado": "degraded",
+    "dependencias": [
+      {
+        "nombre": "MongoDB",
+        "estado": "up",
+        "codigo": null,
+        "ms": 3.3
+      },
+      {
+        "nombre": "Neo4j",
+        "estado": "up",
+        "codigo": null,
+        "ms": 6.2
+      },
+      {
+        "nombre": "Cassandra",
+        "estado": "down",
+        "codigo": "DEPENDENCY_UNAVAILABLE",
+        "ms": 10032.4
+      },
+      {
+        "nombre": "Redis",
+        "estado": "up",
+        "codigo": null,
+        "ms": 2.3
+      },
+      {
+        "nombre": "InfluxDB",
+        "estado": "up",
+        "codigo": null,
+        "ms": 4.5
+      },
+      {
+        "nombre": "IRIS",
+        "estado": "up",
+        "codigo": null,
+        "ms": 0.9
+      }
+    ],
+    "segundos_de_respuesta": 10.05
+  }
+}

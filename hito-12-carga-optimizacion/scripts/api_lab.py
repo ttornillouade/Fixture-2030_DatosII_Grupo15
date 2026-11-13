@@ -9,6 +9,7 @@ La configuración de conexión sigue saliendo de hito-10-api/.env (no versionado
 """
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -33,6 +34,11 @@ def iniciar(log: str, workers: int, cache_ttl_ms: int) -> None:
     except httpx.HTTPError:
         pass
     env = dict(os.environ, CACHE_COMENTARIOS_TTL_MS=str(cache_ttl_ms))
+    if workers > 1:  # métricas del Hito 13 combinadas entre procesos
+        directorio = comun.API_DIR / ".metricas"
+        shutil.rmtree(directorio, ignore_errors=True)
+        directorio.mkdir()
+        env["PROMETHEUS_MULTIPROC_DIR"] = str(directorio)
     cmd = [_python_api(), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000",
            "--no-access-log", "--workers", str(workers)]
     with open(log, "w", encoding="utf-8") as salida:

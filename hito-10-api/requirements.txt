@@ -8,3 +8,4 @@ neo4j==6.4.0
 intersystems-irispython==5.4.1
 pymongo==4.18.3
 PyYAML==6.0.3
+prometheus-client==0.23.1
