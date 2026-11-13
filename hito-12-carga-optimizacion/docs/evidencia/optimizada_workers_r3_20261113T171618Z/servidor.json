@@ -1,0 +1,21 @@
+{
+  "ventana_local": [
+    "2026-11-13 14:17:05",
+    "2026-11-13 14:19:05"
+  ],
+  "nota": "duración medida dentro de la API (middleware), resolución 1 ms",
+  "leer": {
+    "requests": 25382,
+    "p50": 30.0,
+    "p95": 96.0,
+    "p99": 186.0,
+    "max": 373.0
+  },
+  "publicar": {
+    "requests": 2887,
+    "p50": 30.0,
+    "p95": 91.69999999999982,
+    "p99": 185.13999999999987,
+    "max": 372.0
+  }
+}

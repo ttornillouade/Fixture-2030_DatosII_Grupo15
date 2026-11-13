@@ -1,0 +1,38 @@
+{
+  "corrida": "optimizada_cache_workers_r1_20261113T171923Z",
+  "validado_utc": "2026-11-13 17:22:15.736247+00:00",
+  "escrituras": {
+    "enviadas": 3841,
+    "aceptadas_201": 3840,
+    "rechazadas_o_fallidas": 1,
+    "faltan_en_por_partido": 0,
+    "faltan_en_por_usuario": 0,
+    "contenido_distinto": 0
+  },
+  "particiones_revisadas": 64,
+  "filas_de_la_corrida_en_cassandra": 3841,
+  "sobrantes_vs_201": 1,
+  "ids_duplicados": 0,
+  "precargados": {
+    "esperado": {
+      "P901": 109814,
+      "P902": 39959,
+      "P903": 30193,
+      "P904": 20034
+    },
+    "encontrado": {
+      "P901": 109814,
+      "P902": 39959,
+      "P903": 30193,
+      "P904": 20034
+    },
+    "coincide": true
+  },
+  "cache_vs_cassandra_primera_pagina": {
+    "P901": true,
+    "P902": true,
+    "P903": true,
+    "P904": true
+  },
+  "integridad_ok": false
+}
