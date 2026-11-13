@@ -1,0 +1,135 @@
+{
+  "consultado_utc": "2026-11-13T17:52:45+00:00",
+  "targets": [
+    {
+      "job": "api",
+      "componente": "api",
+      "instance": "host.docker.internal:8000",
+      "estado": "up",
+      "ultimo_scrape_s": 0.005,
+      "ultimo_error": ""
+    },
+    {
+      "job": "blackbox",
+      "componente": "blackbox",
+      "instance": "blackbox:9115",
+      "estado": "up",
+      "ultimo_scrape_s": 0.003,
+      "ultimo_error": ""
+    },
+    {
+      "job": "mongodb",
+      "componente": "mongodb",
+      "instance": "mongodb-exporter:9216",
+      "estado": "up",
+      "ultimo_scrape_s": 0.116,
+      "ultimo_error": ""
+    },
+    {
+      "job": "prometheus",
+      "componente": "prometheus",
+      "instance": "localhost:9090",
+      "estado": "up",
+      "ultimo_scrape_s": 0.005,
+      "ultimo_error": ""
+    },
+    {
+      "job": "redis",
+      "componente": "redis",
+      "instance": "redis-exporter:9121",
+      "estado": "up",
+      "ultimo_scrape_s": 0.012,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_http",
+      "componente": "api",
+      "instance": "http://host.docker.internal:8000/salud",
+      "estado": "up",
+      "ultimo_scrape_s": 0.005,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_http",
+      "componente": "influxdb",
+      "instance": "http://influxdb:8181/health",
+      "estado": "up",
+      "ultimo_scrape_s": 0.003,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_tcp",
+      "componente": "cassandra",
+      "instance": "cassandra:9042",
+      "estado": "up",
+      "ultimo_scrape_s": 0.002,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_tcp",
+      "componente": "influxdb",
+      "instance": "influxdb:8181",
+      "estado": "up",
+      "ultimo_scrape_s": 0.002,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_tcp",
+      "componente": "iris",
+      "instance": "iris:1972",
+      "estado": "up",
+      "ultimo_scrape_s": 0.003,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_tcp",
+      "componente": "mongodb",
+      "instance": "mongodb:27017",
+      "estado": "up",
+      "ultimo_scrape_s": 0.002,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_tcp",
+      "componente": "neo4j",
+      "instance": "neo4j:7687",
+      "estado": "up",
+      "ultimo_scrape_s": 0.002,
+      "ultimo_error": ""
+    },
+    {
+      "job": "sonda_tcp",
+      "componente": "redis",
+      "instance": "redis:6379",
+      "estado": "up",
+      "ultimo_scrape_s": 0.002,
+      "ultimo_error": ""
+    }
+  ],
+  "bases": {
+    "MongoDB": {
+      "dependencia_up": "1",
+      "probe_success": "1"
+    },
+    "Neo4j": {
+      "dependencia_up": "1",
+      "probe_success": "1"
+    },
+    "Cassandra": {
+      "dependencia_up": "1",
+      "probe_success": "1"
+    },
+    "Redis": {
+      "dependencia_up": "1",
+      "probe_success": "1"
+    },
+    "InfluxDB": {
+      "dependencia_up": "1",
+      "probe_success": "1"
+    },
+    "IRIS": {
+      "dependencia_up": "1",
+      "probe_success": "1"
+    }
+  }
+}

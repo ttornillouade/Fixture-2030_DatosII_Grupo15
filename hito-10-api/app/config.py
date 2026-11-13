@@ -17,6 +17,8 @@ class Config(BaseSettings):
     cassandra_host: str = "localhost"
     cassandra_port: int = 9042
     cassandra_keyspace: str = "fixture2030_comments"
+    # Hito 13: después de no poder conectar, segundos durante los que se responde 503 sin reintentar.
+    cassandra_reintento_s: float = 5.0
 
     redis_url: str = "redis://localhost:6379/0"
 
