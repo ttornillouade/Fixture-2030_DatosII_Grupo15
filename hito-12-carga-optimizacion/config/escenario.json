@@ -1,0 +1,15 @@
+{
+  "_descripcion": "Pico de comentarios durante un partido en vivo (ver docs/flujo_y_escenario_de_carga.md)",
+  "semilla": 12,
+  "procesos_generador": 3,
+  "usuarios_calentamiento": 5,
+  "usuarios_virtuales": 60,
+  "calentamiento_s": 15,
+  "rampa_s": 30,
+  "sostenimiento_s": 120,
+  "think_time_s": [0.05, 0.25],
+  "timeout_cliente_s": 10,
+  "max_errores_pct": 20,
+  "proporcion": {"feed_vivo": 0.75, "feed_historial": 0.15, "publicar": 0.10},
+  "partidos": {"P901": 0.55, "P902": 0.20, "P903": 0.15, "P904": 0.10}
+}

@@ -1,0 +1,22 @@
+# Override para Windows (Docker Desktop): reemplaza los directorios ~/docker/data/<base> del
+# compose del Hito 10 por volúmenes administrados por Docker. MongoDB, Cassandra e IRIS no
+# funcionan bien (o funcionan muy lento) sobre carpetas NTFS montadas en el contenedor.
+# Se combina con el compose del Hito 10 por el destino de cada volumen:
+#   docker compose -f compose.yaml -f ../hito-12-carga-optimizacion/config/compose.volumenes-docker.yaml up -d --wait
+services:
+  mongodb:   {volumes: ["fixture2030-mongodb:/data/db"]}
+  redis:     {volumes: ["fixture2030-redis:/data"]}
+  cassandra:
+    volumes: ["fixture2030-cassandra:/var/lib/cassandra"]
+    # Límite de heap para que Cassandra no ocupe la mitad de la RAM de Docker (RNF9).
+    environment: {MAX_HEAP_SIZE: 1G, HEAP_NEWSIZE: 200M}
+  neo4j:     {volumes: ["fixture2030-neo4j:/data"]}
+  influxdb:  {volumes: ["fixture2030-influxdb:/var/lib/influxdb3"]}
+  iris:      {volumes: ["fixture2030-iris:/durable"]}
+volumes:
+  fixture2030-mongodb:
+  fixture2030-redis:
+  fixture2030-cassandra:
+  fixture2030-neo4j:
+  fixture2030-influxdb:
+  fixture2030-iris:

@@ -8,12 +8,17 @@ class Config(BaseSettings):
     # Tiempo máximo de espera por operación contra cualquier base (segundos).
     timeout_s: float = 3.0
 
+    # Hito 12: TTL de la caché en Redis de la primera página de comentarios (ms). 0 = desactivada.
+    cache_comentarios_ttl_ms: int = 0
+
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_database: str = "fixture2030"
 
     cassandra_host: str = "localhost"
     cassandra_port: int = 9042
     cassandra_keyspace: str = "fixture2030_comments"
+    # Hito 13: después de no poder conectar, segundos durante los que se responde 503 sin reintentar.
+    cassandra_reintento_s: float = 5.0
 
     redis_url: str = "redis://localhost:6379/0"
 

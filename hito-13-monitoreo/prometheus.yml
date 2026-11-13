@@ -1,0 +1,79 @@
+# Prometheus del Fixture 2030 (Hito 13). Ver docs/metricas_y_consultas.md.
+#
+# Intervalo de 5 s: es un laboratorio y la prueba de falla dura ~1 minuto; con 15 s (valor por defecto)
+# la caída y la recuperación quedarían en 2-4 muestras. En producción se usaría 15-30 s.
+global:
+  scrape_interval: 5s
+  scrape_timeout: 4s
+  evaluation_interval: 5s
+  external_labels:
+    entorno: laboratorio
+    sistema: fixture2030
+
+rule_files:
+  - /etc/prometheus/reglas/reglas-o-alertas.yml
+
+scrape_configs:
+  # --- Métricas de APLICACIÓN: las publica la propia API (app/metricas.py) ---------------------
+  - job_name: api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+        labels: {componente: api, capa: aplicacion}
+
+  # --- Métricas de INFRAESTRUCTURA por exporter ------------------------------------------------
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+        labels: {componente: redis, modelo: clave-valor, capa: base}
+
+  - job_name: mongodb
+    static_configs:
+      - targets: ["mongodb-exporter:9216"]
+        labels: {componente: mongodb, modelo: documental, capa: base}
+
+  # --- Sondas sintéticas (blackbox): disponibilidad de red de las 6 bases ---------------------
+  # Patrón estándar: el target real va en el parámetro ?target= y la sonda la hace el blackbox.
+  - job_name: sonda_tcp
+    metrics_path: /probe
+    params: {module: [tcp_connect]}
+    static_configs:
+      - targets: ["mongodb:27017"]
+        labels: {componente: mongodb, modelo: documental}
+      - targets: ["neo4j:7687"]
+        labels: {componente: neo4j, modelo: grafo}
+      - targets: ["cassandra:9042"]
+        labels: {componente: cassandra, modelo: columnar}
+      - targets: ["redis:6379"]
+        labels: {componente: redis, modelo: clave-valor}
+      - targets: ["influxdb:8181"]
+        labels: {componente: influxdb, modelo: series-temporales}
+      - targets: ["iris:1972"]
+        labels: {componente: iris, modelo: multimodelo}
+    relabel_configs: &sonda
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  - job_name: sonda_http
+    metrics_path: /probe
+    params: {module: [http_2xx]}
+    static_configs:
+      - targets: ["http://influxdb:8181/health"]
+        labels: {componente: influxdb, modelo: series-temporales}
+      - targets: ["http://host.docker.internal:8000/salud"]
+        labels: {componente: api}
+    relabel_configs: *sonda
+
+  # --- El propio monitoreo ---------------------------------------------------------------------
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels: {componente: prometheus, capa: monitoreo}
+  - job_name: blackbox
+    static_configs:
+      - targets: ["blackbox:9115"]
+        labels: {componente: blackbox, capa: monitoreo}

@@ -1,0 +1,65 @@
+# Reglas del Fixture 2030 (Hito 13). Justificación de cada umbral en docs/alertas_y_umbral.md.
+# Las alertas se evalúan en Prometheus (pestaña Alerts). No hay Alertmanager en el laboratorio:
+# la notificación (mail, chat, guardia) queda como propuesta.
+groups:
+  - name: fixture2030-registro
+    interval: 5s
+    rules:
+      # Requests por segundo de la API, por base que atiende el endpoint.
+      - record: fixture2030:api_requests:rate1m
+        expr: sum by (fuente) (rate(fixture2030_http_requests_total[1m]))
+      # Proporción de respuestas 5xx (503 base caída, 504 base lenta, 500 error interno).
+      - record: fixture2030:api_errores_5xx:ratio1m
+        expr: |
+          sum by (fuente) (rate(fixture2030_http_requests_total{status=~"5.."}[1m]))
+          / sum by (fuente) (rate(fixture2030_http_requests_total[1m]))
+      # Latencia p95 dentro de la API, por base.
+      - record: fixture2030:api_latencia_p95:1m
+        expr: histogram_quantile(0.95, sum by (le, fuente) (rate(fixture2030_http_request_duration_seconds_bucket[1m])))
+
+  - name: fixture2030-alertas
+    rules:
+      - alert: BaseNoDisponible
+        expr: fixture2030_dependencia_up == 0
+        for: 30s
+        labels: {severidad: critica, equipo: guardia-datos}
+        annotations:
+          resumen: "{{ $labels.base }} no responde al ping de la API"
+          impacto: "Los endpoints de esa base responden 503/504; el resto de la API sigue funcionando."
+          accion: "Revisar `docker ps` y el log del contenedor; ver docs/alertas_y_umbral.md#basenodisponible"
+
+      - alert: SondaTCPFallando
+        expr: probe_success{job="sonda_tcp"} == 0
+        for: 30s
+        labels: {severidad: critica, equipo: guardia-datos}
+        annotations:
+          resumen: "El puerto de {{ $labels.componente }} ({{ $labels.instance }}) no acepta conexiones"
+          impacto: "Confirma desde fuera de la API que la base está caída (no es un problema del driver)."
+          accion: "Si BaseNoDisponible también está activa, la causa es la base o su contenedor."
+
+      - alert: ErroresServidorAltos
+        expr: fixture2030:api_errores_5xx:ratio1m > 0.02 and fixture2030:api_requests:rate1m > 1
+        for: 1m
+        labels: {severidad: alta, equipo: desarrollo-api}
+        annotations:
+          resumen: "Más del 2 % de 5xx en endpoints de {{ $labels.fuente }}"
+          impacto: "Usuarios que no pueden leer o publicar (por ejemplo, comentarios en vivo)."
+          accion: "Separar 503 (rechazo) de 504 (lentitud) en el panel Errores y cruzar con disponibilidad."
+
+      - alert: LatenciaComentariosAlta
+        expr: fixture2030:api_latencia_p95:1m{fuente="Cassandra"} > 0.3
+        for: 2m
+        labels: {severidad: media, equipo: desarrollo-api}
+        annotations:
+          resumen: "p95 de comentarios por encima de 300 ms durante 2 minutos"
+          impacto: "El feed en vivo se percibe lento; con más carga se llega a los 504 (TIMEOUT_S = 3 s)."
+          accion: "Mirar CPU de la API vs Cassandra y la tasa de aciertos de la caché (Hito 12)."
+
+      - alert: TargetDeMonitoreoCaido
+        expr: up{job=~"api|redis|mongodb"} == 0
+        for: 1m
+        labels: {severidad: baja, equipo: guardia-datos}
+        annotations:
+          resumen: "Prometheus no puede leer las métricas de {{ $labels.job }}"
+          impacto: "Se pierde visibilidad (no necesariamente servicio): los paneles de ese componente quedan vacíos."
+          accion: "Ver Status > Targets en Prometheus: el error del scrape dice si es red, puerto o exporter."

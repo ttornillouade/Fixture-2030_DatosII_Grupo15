@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fixture 2030 — Defensa</title>
+<!-- Presentación de la defensa final (Hito 13). Sin recursos externos: funciona sin conexión.
+     Navegación: flechas ← →, barra espaciadora, o clic en los botones. Las imágenes se leen del repositorio. -->
+<style>
+  :root { --fondo:#f7f7f4; --texto:#1d2330; --suave:#5b6475; --acento:#1f6f5c; --alerta:#b4442f; --tarjeta:#ffffff; --borde:#dcdfe5; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --fondo:#15181f; --texto:#e8eaef; --suave:#9aa3b5; --acento:#5cc4a6; --alerta:#ef7b65; --tarjeta:#1d212b; --borde:#323847; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:18px/1.45 system-ui, "Segoe UI", Roboto, sans-serif; }
+  .slide { display:none; min-height:100vh; padding:48px 64px 80px; max-width:1200px; margin:0 auto; }
+  .slide.activa { display:block; }
+  h1 { font-size:44px; margin:0 0 8px; letter-spacing:-.5px; }
+  h2 { font-size:32px; margin:0 0 24px; color:var(--acento); }
+  .sub { color:var(--suave); font-size:20px; }
+  table { border-collapse:collapse; width:100%; font-size:16px; background:var(--tarjeta); }
+  th, td { border:1px solid var(--borde); padding:7px 10px; text-align:left; vertical-align:top; }
+  th { background:color-mix(in srgb, var(--acento) 12%, var(--tarjeta)); }
+  .num { text-align:right; font-variant-numeric: tabular-nums; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px; }
+  .card { background:var(--tarjeta); border:1px solid var(--borde); border-radius:10px; padding:16px 18px; }
+  .card b { color:var(--acento); }
+  .big { font-size:40px; font-weight:700; color:var(--acento); }
+  .malo { color:var(--alerta); }
+  img { max-width:100%; border:1px solid var(--borde); border-radius:8px; background:#fff; }
+  ul { margin:8px 0; } li { margin:4px 0; }
+  code { font-size:.9em; background:color-mix(in srgb, var(--acento) 10%, transparent); padding:1px 5px; border-radius:4px; }
+  .pie { position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center;
+         padding:10px 24px; background:var(--tarjeta); border-top:1px solid var(--borde); font-size:14px; color:var(--suave); }
+  .pie button { font:inherit; padding:6px 14px; border:1px solid var(--borde); background:var(--fondo); color:var(--texto); border-radius:6px; cursor:pointer; }
+  .fuente { font-size:13px; color:var(--suave); margin-top:14px; }
+  @media (max-width: 700px) { .slide { padding:24px 16px 80px; } h1 { font-size:30px; } h2 { font-size:24px; } table { font-size:13px; } }
+</style>
+</head>
+<body>
+
+<section class="slide activa">
+  <p class="sub">Grupo 15 · Bases de Datos II · Defensa final ante la FIFA</p>
+  <h1>Fixture Mundial 2030</h1>
+  <p class="sub">Seis modelos NoSQL integrados por una API, medidos bajo carga y observados con Prometheus y Grafana</p>
+  <div class="grid" style="margin-top:40px">
+    <div class="card"><b>Pregunta central</b><br>¿Por qué esta combinación de modelos, estructuras, distribución y observabilidad es adecuada para el Fixture 2030?</div>
+    <div class="card"><b>Respuesta corta</b><br>Una base por patrón de acceso, una base por endpoint (fallas aisladas), consistencia elegida por módulo, y evidencia medida de todo esto.</div>
+    <div class="card"><b>Con estas condiciones</b><br>Laboratorio: un nodo por base en una PC. La replicación y el volumen del torneo son diseño, no medición.</div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>1. El problema: datos de naturaleza distinta</h2>
+  <table>
+    <tr><th>Dato del Fixture</th><th>Cómo se accede</th><th>Qué necesita</th></tr>
+    <tr><td>Equipos y jugadores</td><td>ficha por código, plantel paginado</td><td>documento flexible con índices</td></tr>
+    <tr><td>Quién jugó contra quién</td><td>recorridos de 2-3 saltos</td><td>relaciones como ciudadanos de primera</td></tr>
+    <tr><td>Comentarios de hinchas</td><td>miles de escrituras por partido, feed reciente</td><td>escritura distribuida, lectura por partición</td></tr>
+    <tr><td>Sesiones</td><td>lectura por clave en cada request; vencen</td><td>memoria + TTL</td></tr>
+    <tr><td>Estadísticas por segundo</td><td>ventanas de tiempo, agregados por minuto</td><td>series temporales con retención</td></tr>
+    <tr><td>Partido y sus eventos</td><td>entidad completa + transiciones de estado válidas</td><td>objetos con reglas + SQL, consistencia fuerte</td></tr>
+  </table>
+  <p>Una sola base resolvería bien uno o dos de estos accesos. <b>Decisión: una base por patrón, y cada endpoint usa una sola base.</b></p>
+</section>
+
+<section class="slide">
+  <h2>2. Arquitectura: qué hace cada base</h2>
+  <table>
+    <tr><th>Base</th><th>Modelo</th><th>Estructura implementada</th><th>Endpoint</th></tr>
+    <tr><td>MongoDB</td><td>documental</td><td><code>equipos</code>, <code>jugadores</code> con <code>$jsonSchema</code>; índice <code>{equipoId, posicion, dorsal}</code>; paginación por clave</td><td><code>GET /equipos</code>, <code>/jugadores</code></td></tr>
+    <tr><td>Neo4j</td><td>grafo</td><td><code>(Jugador)-[:PARTICIPA_EN]-&gt;(Partido)&lt;-[:DISPUTA]-(Equipo)</code></td><td><code>GET /jugadores/{c}/partidos</code></td></tr>
+    <tr><td>Cassandra</td><td>columnar</td><td>partición <code>(partido, bucket_5m, shard)</code>, 8 shards; tabla por usuario; <code>BATCH LOGGED</code></td><td><code>GET/POST /partidos/{c}/comentarios</code></td></tr>
+    <tr><td>Redis</td><td>clave-valor</td><td>sesión HASH + TTL 30 min, AOF, 256 MB <code>noeviction</code>; caché del feed TTL 1 s</td><td><code>/sesiones/{id}</code></td></tr>
+    <tr><td>InfluxDB 3</td><td>series temporales</td><td><code>estadisticas_equipo</code>, retención 14 días, agregación por minuto</td><td><code>/partidos/{c}/estadisticas</code></td></tr>
+    <tr><td>IRIS</td><td>multimodelo</td><td><code>Fixture.Partido</code> con <code>Eventos</code> (padre-hijo); transiciones validadas</td><td><code>/partidos/{c}/detalle</code>, <code>/estado</code></td></tr>
+  </table>
+  <p class="fuente">Detalle por base (acceso, escala, consistencia, falla, costo, evidencia): <code>hito-13-monitoreo/docs/decisiones_de_arquitectura.md</code></p>
+</section>
+
+<section class="slide">
+  <h2>3. Distribución, consistencia y fallas</h2>
+  <div class="grid">
+    <div class="card"><b>AP — disponibilidad</b><ul><li>Comentarios (Cassandra): mejor aceptar y mostrar 1-2 s tarde que rechazar en un gol</li><li>Sesiones (Redis, AOF 1 s)</li><li>Estadísticas (InfluxDB)</li></ul></div>
+    <div class="card"><b>CP — consistencia</b><ul><li>Estado del partido (IRIS): no puede estar "finalizado" en un nodo y "en juego" en otro</li><li>Escrituras de equipos (MongoDB, primario)</li></ul></div>
+    <div class="card"><b>Diseño de producción (no medido)</b><ul><li>Cassandra RF=3, <code>LOCAL_QUORUM</code></li><li>MongoDB replica set de 3</li><li>Redis con réplica / Sentinel</li><li>IRIS con mirroring</li></ul></div>
+  </div>
+  <p style="margin-top:20px"><b>Medido:</b> con Cassandra detenida, MongoDB y Redis siguieron respondiendo 100 % OK; la API se recuperó sola al volver la base.</p>
+</section>
+
+<section class="slide">
+  <h2>4. Carga (Hito 12): dónde estaba el cuello de botella</h2>
+  <div class="grid">
+    <div class="card"><b>Escenario</b><br>Comentarios en vivo: 60 usuarios, 75 % feed actual, 15 % historial, 10 % publicar; 120 s sostenidos; 200.000 comentarios precargados; 3 repeticiones.</div>
+    <div class="card"><b>Primer hallazgo</b><br>El generador de carga era el límite: 1 proceso al 93 %, la API respondía en 18 ms. Se corrigió <i>antes</i> de la línea base.</div>
+    <div class="card"><b>Línea base</b><br><span class="big">163</span> req/s · p95 399 ms<br>API al <b>90 % de un núcleo</b>; Cassandra con margen. <b>El límite era la integración, no la base.</b></div>
+  </div>
+  <p class="fuente">Fuente: <code>hito-12-carga-optimizacion/docs/linea_base.md</code></p>
+</section>
+
+<section class="slide">
+  <h2>5. Optimización medida (misma carga, mismos datos)</h2>
+  <table>
+    <tr><th>Mediana de 3 corridas</th><th class="num">Línea base</th><th class="num">Caché Redis 1 s</th><th class="num">3 workers</th><th class="num">Caché + 3 workers</th></tr>
+    <tr><td>Throughput (req/s)</td><td class="num">163,4</td><td class="num">248,2</td><td class="num">237,9</td><td class="num"><b>272,8 (+67 %)</b></td></tr>
+    <tr><td>p50 / p95 / p99 (ms)</td><td class="num">203 / 399 / 487</td><td class="num">73 / 238 / 368</td><td class="num">82 / 260 / 383</td><td class="num"><b>58 / 186 / 273</b></td></tr>
+    <tr><td>CPU Cassandra</td><td class="num">102 %</td><td class="num">72 %</td><td class="num">147 %</td><td class="num">69 %</td></tr>
+    <tr><td>Memoria API</td><td class="num">174 MB</td><td class="num">137 MB</td><td class="num">430 MB</td><td class="num">397 MB</td></tr>
+    <tr><td>Integridad</td><td class="num">OK</td><td class="num">OK</td><td class="num">OK</td><td class="num malo">1 escritura fantasma</td></tr>
+  </table>
+  <p><b>Trade-offs:</b> el feed puede llegar hasta 1 s desactualizado; más memoria y conexiones. <b>Hallazgo:</b> un POST con timeout del cliente se escribió igual (arranque en frío de un proceso) → falta idempotencia del POST.</p>
+  <img src="../../hito-12-carga-optimizacion/docs/evidencia/comparacion_latencias.png" alt="Latencias p50, p95 y p99 por configuración" style="max-height:300px">
+</section>
+
+<section class="slide">
+  <h2>6. Observabilidad (Hito 13)</h2>
+  <div class="grid">
+    <div class="card"><b>Aplicación</b> (la API, <code>/metrics</code>)<br>requests, latencia y errores por ruta y por base; estado de cada base por su driver; aciertos de caché</div>
+    <div class="card"><b>Exporters</b><br>MongoDB (operaciones, conexiones), Redis (memoria, comandos)</div>
+    <div class="card"><b>Sondas</b> (blackbox)<br>TCP a las 6 bases, HTTP a InfluxDB y a la API</div>
+    <div class="card"><b>Alertas</b><br><code>BaseNoDisponible</code> (30 s), <code>SondaTCPFallando</code>, <code>ErroresServidorAltos</code> (&gt;2 %), <code>LatenciaComentariosAlta</code> (p95 &gt; 300 ms), <code>TargetDeMonitoreoCaido</code></div>
+  </div>
+  <p><b>Límite honesto:</b> Cassandra, Neo4j, InfluxDB e IRIS se ven solo por disponibilidad y por su efecto en la API (sin métricas internas en el laboratorio).</p>
+</section>
+
+<section class="slide">
+  <h2>7. Falla controlada: Cassandra detenida 60 s</h2>
+  <img src="../evidencia/prueba_de_falla_cassandra_20261113T174816Z/prueba_de_falla.png" alt="Disponibilidad, tráfico y latencia durante la prueba de falla" style="max-height:430px">
+  <table style="margin-top:12px">
+    <tr><th></th><th class="num">Antes</th><th class="num">Con corte rápido</th></tr>
+    <tr><td>Latencia de los 503 (p50 / p95)</td><td class="num malo">4.081 / 7.952 ms</td><td class="num">3 / 11 ms</td></tr>
+    <tr><td>La API reporta la caída</td><td class="num malo">30 s</td><td class="num">5 s</td></tr>
+    <tr><td>Recuperación tras base sana</td><td class="num">7 s</td><td class="num">13 s (costo del corte)</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>8. Cierre</h2>
+  <div class="grid">
+    <div class="card"><b>Por qué es adecuada</b><ul><li>Cada base atiende el patrón que mejor resuelve</li><li>Fallas aisladas por módulo (medido)</li><li>Consistencia elegida por módulo</li><li>Observable y medida bajo carga</li></ul></div>
+    <div class="card"><b>Trade-offs aceptados</b><ul><li>Seis productos que operar</li><li>Duplicación (comentarios en 2 tablas; Data Mart)</li><li>Feed hasta 1 s desactualizado</li><li>Laboratorio con RF=1</li></ul></div>
+    <div class="card"><b>Próxima iteración</b><ul><li>Réplicas reales y caída de un nodo</li><li>Idempotencia del POST y conexiones al iniciar</li><li>JMX de Cassandra, Alertmanager</li><li>ETL del Data Mart programado</li></ul></div>
+  </div>
+</section>
+
+<div class="pie">
+  <span>Fixture 2030 · Grupo 15</span>
+  <span id="pos">1 / 9</span>
+  <span><button id="ant" type="button">← Anterior</button> <button id="sig" type="button">Siguiente →</button></span>
+</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let i = 0;
+  function ir(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('activa', k === i));
+    document.getElementById('pos').textContent = (i + 1) + ' / ' + slides.length;
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+  }
+  document.getElementById('ant').onclick = () => ir(i - 1);
+  document.getElementById('sig').onclick = () => ir(i + 1);
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); ir(i + 1); }
+    if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); ir(i - 1); }
+  });
+  ir((parseInt(location.hash.slice(1), 10) || 1) - 1);
+</script>
+</body>
+</html>

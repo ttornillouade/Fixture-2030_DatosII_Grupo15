@@ -1,0 +1,18 @@
+{
+  "etl_utc": "2026-11-13 17:30:25.688614+00:00",
+  "partidos": [
+    "P901",
+    "P902",
+    "P903",
+    "P904"
+  ],
+  "ventanas": 49,
+  "particiones_leidas": 1568,
+  "filas_leidas": 240474,
+  "duplicadas_descartadas": 0,
+  "filas_mart_escritas": 911,
+  "extraccion_s": 1.22,
+  "transformacion_y_carga_s": 0.23,
+  "primera_ventana": "2026-11-13 13:20:00+00:00",
+  "ultima_ventana": "2026-11-13 17:20:00+00:00"
+}
