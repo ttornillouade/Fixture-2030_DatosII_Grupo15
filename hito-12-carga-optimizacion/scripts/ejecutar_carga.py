@@ -46,15 +46,20 @@ class Recursos(threading.Thread):
         self.ruta, self.t0, self.fin = ruta, t0, threading.Event()
         self.gen = [psutil.Process(p) for p in generadores]
         self.api = psutil.Process(api_pid) if api_pid else None
+        self._vistos: dict[int, psutil.Process] = {}
         self.filas = []
 
     def _api_procs(self):
+        """Proceso de la API y sus hijos (en Windows el python del venv es un lanzador y el intérprete
+        real es un hijo; con --workers, cada worker es otro hijo). Se reutiliza el mismo objeto Process
+        por PID: cpu_percent() mide desde la llamada anterior sobre ese mismo objeto."""
         if not self.api:
             return []
         try:
-            return [self.api] + self.api.children(recursive=True)
+            actuales = [self.api] + self.api.children(recursive=True)
         except psutil.Error:
             return []
+        return [self._vistos.setdefault(p.pid, p) for p in actuales]
 
     @staticmethod
     def _cpu(p):

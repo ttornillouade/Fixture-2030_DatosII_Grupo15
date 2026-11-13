@@ -1,0 +1,32 @@
+{
+  "corrida": "linea_base_r1_20261113T164633Z",
+  "validado_utc": "2026-11-13 16:48:01.391901+00:00",
+  "escrituras": {
+    "enviadas": 593,
+    "aceptadas_201": 583,
+    "rechazadas_o_fallidas": 10,
+    "faltan_en_por_partido": 0,
+    "faltan_en_por_usuario": 0,
+    "contenido_distinto": 0
+  },
+  "particiones_revisadas": 32,
+  "filas_de_la_corrida_en_cassandra": 593,
+  "sobrantes_vs_201": 10,
+  "ids_duplicados": 0,
+  "precargados": {
+    "esperado": {
+      "P901": 109814,
+      "P902": 39959,
+      "P903": 30193,
+      "P904": 20034
+    },
+    "encontrado": {
+      "P901": 109814,
+      "P902": 39959,
+      "P903": 30193,
+      "P904": 20034
+    },
+    "coincide": true
+  },
+  "integridad_ok": false
+}
