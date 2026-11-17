@@ -1,0 +1,90 @@
+{
+  "a_mitad_de_la_caida": [
+    {
+      "alerta": "BaseNoDisponible",
+      "estado": "pending",
+      "desde": "2026-11-13T17:44:19.287465767Z",
+      "labels": {
+        "base": "Cassandra",
+        "capa": "aplicacion",
+        "componente": "api",
+        "equipo": "guardia-datos",
+        "instance": "host.docker.internal:8000",
+        "job": "api",
+        "severidad": "critica"
+      }
+    },
+    {
+      "alerta": "SondaTCPFallando",
+      "estado": "pending",
+      "desde": "2026-11-13T17:43:54.287465767Z",
+      "labels": {
+        "componente": "cassandra",
+        "equipo": "guardia-datos",
+        "instance": "cassandra:9042",
+        "job": "sonda_tcp",
+        "modelo": "columnar",
+        "severidad": "critica"
+      }
+    },
+    {
+      "alerta": "ErroresServidorAltos",
+      "estado": "pending",
+      "desde": "2026-11-13T17:44:04.287465767Z",
+      "labels": {
+        "equipo": "desarrollo-api",
+        "fuente": "Cassandra",
+        "severidad": "alta"
+      }
+    },
+    {
+      "alerta": "LatenciaComentariosAlta",
+      "estado": "pending",
+      "desde": "2026-11-13T17:44:19.287465767Z",
+      "labels": {
+        "equipo": "desarrollo-api",
+        "fuente": "Cassandra",
+        "severidad": "media"
+      }
+    }
+  ],
+  "al_final_de_la_caida": [
+    {
+      "alerta": "BaseNoDisponible",
+      "estado": "firing",
+      "desde": "2026-11-13T17:44:19.287465767Z",
+      "labels": {
+        "base": "Cassandra",
+        "capa": "aplicacion",
+        "componente": "api",
+        "equipo": "guardia-datos",
+        "instance": "host.docker.internal:8000",
+        "job": "api",
+        "severidad": "critica"
+      }
+    },
+    {
+      "alerta": "SondaTCPFallando",
+      "estado": "firing",
+      "desde": "2026-11-13T17:43:54.287465767Z",
+      "labels": {
+        "componente": "cassandra",
+        "equipo": "guardia-datos",
+        "instance": "cassandra:9042",
+        "job": "sonda_tcp",
+        "modelo": "columnar",
+        "severidad": "critica"
+      }
+    },
+    {
+      "alerta": "LatenciaComentariosAlta",
+      "estado": "pending",
+      "desde": "2026-11-13T17:44:19.287465767Z",
+      "labels": {
+        "equipo": "desarrollo-api",
+        "fuente": "Cassandra",
+        "severidad": "media"
+      }
+    }
+  ]
+}

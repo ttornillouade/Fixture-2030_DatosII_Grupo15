@@ -5,6 +5,7 @@ leyendo los 8 shards del bucket pedido y fusionándolos por fecha. Nunca se lee 
 partición completa (no hay ALLOW FILTERING ni escaneos).
 """
 import threading
+import time
 import uuid
 import zlib
 from datetime import datetime, timezone
@@ -20,13 +21,30 @@ SHARDS = 8
 _TIMEOUTS = (OperationTimedOut, ReadTimeout, WriteTimeout)
 _ERRORES = (NoHostAvailable, Unavailable, *_TIMEOUTS)
 _lock = threading.Lock()
+_REINTENTO_S = config.cassandra_reintento_s
 _estado: dict = {}
 
 _COLUMNAS = "creado_en, comentario_id, autor_id, contenido, estado_moderacion, reacciones"
 
 
 def _sesion():
-    with _lock:
+    """Sesión compartida, creada con la primera request.
+
+    Corte rápido (Hito 13): en la prueba de falla, con Cassandra detenida cada request volvía a crear el
+    Cluster bajo este lock (~4 s por intento) y las demás esperaban en fila: los 503 llegaban a tardar 8 s y
+    /salud/dependencias 6,5 s, por encima de TIMEOUT_S. Ahora, después de un fallo, durante
+    CASSANDRA_REINTENTO_S segundos se responde 503 sin intentar conectar, y si otro hilo ya está
+    conectando no se espera detrás de él.
+    """
+    sesion = _estado.get("sesion")
+    if sesion is not None:
+        return sesion
+    if time.monotonic() < _estado.get("reintentar_desde", 0):
+        raise DependenciaNoDisponible("Cassandra", "corte rápido: falló hace menos de "
+                                      f"{_REINTENTO_S:.0f} s, no se reintenta todavía")
+    if not _lock.acquire(timeout=config.timeout_s):
+        raise DependenciaTimeout("Cassandra", "otra request está abriendo la conexión")
+    try:
         if "sesion" not in _estado:
             cluster = Cluster([config.cassandra_host], port=config.cassandra_port,
                               connect_timeout=config.timeout_s)
@@ -49,10 +67,17 @@ def _sesion():
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
             _estado["sesion"] = sesion
         return _estado["sesion"]
+    except NoHostAvailable:
+        _estado["reintentar_desde"] = time.monotonic() + _REINTENTO_S
+        raise
+    finally:
+        _lock.release()
 
 
 def _no_disponible(e: Exception):
     _estado.clear()
+    if isinstance(e, NoHostAvailable):  # base caída o inalcanzable: se abre el corte rápido
+        _estado["reintentar_desde"] = time.monotonic() + _REINTENTO_S
     error = DependenciaTimeout if isinstance(e, _TIMEOUTS) else DependenciaNoDisponible
     return error("Cassandra", type(e).__name__)
 

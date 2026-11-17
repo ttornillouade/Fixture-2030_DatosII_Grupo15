@@ -1,0 +1,27 @@
+{
+  "MongoDB": {
+    "requests": 910,
+    "por_status": {
+      "200": 910
+    },
+    "latencia_cliente_p50_s": 0.005,
+    "latencia_cliente_max_s": 0.185
+  },
+  "Redis": {
+    "requests": 891,
+    "por_status": {
+      "200": 891
+    },
+    "latencia_cliente_p50_s": 0.006,
+    "latencia_cliente_max_s": 0.16
+  },
+  "Cassandra": {
+    "requests": 762,
+    "por_status": {
+      "200": 555,
+      "503": 207
+    },
+    "latencia_cliente_p50_s": 0.007,
+    "latencia_cliente_max_s": 4.112
+  }
+}

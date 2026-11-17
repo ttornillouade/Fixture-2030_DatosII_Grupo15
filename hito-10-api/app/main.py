@@ -5,9 +5,11 @@ import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
+from app import metricas
 from app.errores import ErrorApi
+from app.servicios import salud_dependencias
 from app.rutas import comentarios, equipos, estadisticas, partidos, relaciones, salud, sesiones
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -30,11 +32,28 @@ async def correlacion(request: Request, call_next):
     inicio = time.perf_counter()
     respuesta = await call_next(request)
     respuesta.headers["X-Request-ID"] = request_id
+    duracion = time.perf_counter() - inicio
     # No se registran cuerpos, query strings ni credenciales: solo lo necesario para correlacionar.
     log.info("%s %s fuente=%s status=%s %.0fms causa=%s %s", request.method, request.url.path,
              getattr(request.state, "fuente", "-"), respuesta.status_code,
-             (time.perf_counter() - inicio) * 1000, getattr(request.state, "causa", None) or "-", request_id)
+             duracion * 1000, getattr(request.state, "causa", None) or "-", request_id)
+    # Hito 13: la ruta va como plantilla (/partidos/{codigo}/...) para no crear una serie por partido.
+    ruta = getattr(request.scope.get("route"), "path", "sin_ruta")
+    if ruta != "/metrics":
+        metricas.registrar(request.method, ruta, getattr(request.state, "fuente", "-"), respuesta.status_code, duracion)
     return respuesta
+
+
+@app.get("/metrics", include_in_schema=False)
+def exponer_metricas():
+    """Métricas Prometheus (Hito 13). Sin datos de negocio ni credenciales: contadores e histogramas."""
+    cuerpo, tipo = metricas.exponer()
+    return Response(content=cuerpo, media_type=tipo)
+
+
+@app.on_event("startup")
+def _iniciar_sondeo():
+    metricas.iniciar_sondeo(salud_dependencias)
 
 
 def _error(request: Request, status: int, code: str, message: str, **extra) -> JSONResponse:

@@ -1,0 +1,18 @@
+{
+  "pregunta": "comentarios por minuto de P901 en 49 ventanas de 5 min",
+  "repeticiones": 10,
+  "medicion": "tiempo de cliente (driver Python) en ms, mediana y máximo",
+  "fuente_operacional": {
+    "particiones": 392,
+    "filas_transferidas": 132000,
+    "mediana_ms": 686.9,
+    "max_ms": 782.9
+  },
+  "proyeccion_mart": {
+    "particiones": 1,
+    "filas_transferidas": 228,
+    "mediana_ms": 3.0,
+    "max_ms": 13.7
+  },
+  "mismas_respuestas": true
+}

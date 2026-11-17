@@ -1,0 +1,103 @@
+# Fixture 2030 — capa de observabilidad (Hito 13).
+# Se suma a las seis bases del Hito 10 (hito-10-api/compose.yaml) uniéndose a su red de Docker:
+# los exporters llegan a cada base por su nombre de servicio (mongodb, redis, ...).
+# La API corre en la notebook: Prometheus la alcanza en host.docker.internal:8000/metrics.
+#
+#   bash scripts/iniciar_monitoreo.sh      (o: docker compose up -d --wait)
+#   Prometheus: http://localhost:9090      Grafana: http://localhost:3000
+#
+# Todo publica solo en 127.0.0.1. Versiones fijas para que la demo sea reproducible.
+name: fixture2030-monitoreo
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: fixture2030-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d        # laboratorio: una semana alcanza para la defensa
+      - --storage.tsdb.retention.size=1GB       # tope de disco (RNF9 del Hito 12)
+      - --web.enable-lifecycle                  # permite recargar la config con POST /-/reload
+    ports: ["127.0.0.1:9090:9090"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus:/etc/prometheus/reglas:ro
+      - prometheus-datos:/prometheus
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [fixture]
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    container_name: fixture2030-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      # La contraseña sale de .env (no versionado). Sin ella, el compose no arranca.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Definir GRAFANA_ADMIN_PASSWORD en .env}
+      # Laboratorio: lectura anónima del dashboard (rol Viewer) para la demo y las capturas.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: light
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/fixture2030.json
+    ports: ["127.0.0.1:3000:3000"]
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-datos:/var/lib/grafana
+    depends_on:
+      prometheus: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [fixture]
+
+  # Exporter de Redis: memoria, comandos por segundo, clientes, claves con TTL.
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.74.0
+    container_name: fixture2030-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    networks: [fixture]
+
+  # Exporter de MongoDB: estado, operaciones por tipo, conexiones.
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.44.0
+    container_name: fixture2030-mongodb-exporter
+    restart: unless-stopped
+    command: ["--mongodb.uri=mongodb://mongodb:27017", "--compatible-mode", "--collector.diagnosticdata",
+              "--mongodb.direct-connect=true"]
+    networks: [fixture]
+
+  # Sondas sintéticas: conexión TCP a las 6 bases y HTTP a InfluxDB y a la API.
+  # Cubre las bases que no exponen métricas Prometheus en su edición de laboratorio (Neo4j Community,
+  # Cassandra sin agente JMX, IRIS Community sin /api/monitor habilitado sin credenciales).
+  blackbox:
+    image: prom/blackbox-exporter:v0.27.0
+    container_name: fixture2030-blackbox
+    restart: unless-stopped
+    command: ["--config.file=/etc/blackbox/blackbox.yml"]
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    networks: [fixture]
+
+volumes:
+  prometheus-datos:
+  grafana-datos:
+
+networks:
+  fixture:
+    # Red creada por el compose del Hito 10 (proyecto hito-10-api).
+    name: hito-10-api_default
+    external: true

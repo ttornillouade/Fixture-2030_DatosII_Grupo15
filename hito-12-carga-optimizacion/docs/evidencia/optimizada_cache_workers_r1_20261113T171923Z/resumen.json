@@ -1,0 +1,133 @@
+{
+  "etiqueta": "optimizada_cache_workers_r1",
+  "inicio_utc": "20261113T171923Z",
+  "commit": "5817539",
+  "escenario": {
+    "_descripcion": "Pico de comentarios durante un partido en vivo (ver docs/flujo_y_escenario_de_carga.md)",
+    "semilla": 12,
+    "procesos_generador": 3,
+    "usuarios_calentamiento": 5,
+    "usuarios_virtuales": 60,
+    "calentamiento_s": 15,
+    "rampa_s": 30,
+    "sostenimiento_s": 120,
+    "think_time_s": [
+      0.05,
+      0.25
+    ],
+    "timeout_cliente_s": 10,
+    "max_errores_pct": 20,
+    "proporcion": {
+      "feed_vivo": 0.75,
+      "feed_historial": 0.15,
+      "publicar": 0.1
+    },
+    "partidos": {
+      "P901": 0.55,
+      "P902": 0.2,
+      "P903": 0.15,
+      "P904": 0.1
+    }
+  },
+  "api_url": "http://127.0.0.1:8000",
+  "versiones": {
+    "fixture2030-mongodb": "mongo:latest sha256:1444adda2e4b8d6a0d7f242a625d834a78d6e3aa6e4ed1b0b4c2dab2318c5e3d",
+    "fixture2030-redis": "redis:latest sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53",
+    "fixture2030-cassandra": "cassandra:latest sha256:acd754f07c73f3a166bb477354b56ce9a05690c3e5e2aaacc1aab2afddba6436",
+    "fixture2030-neo4j": "neo4j:latest sha256:4a2fd4f41ce384aa7d6a74b399f22c202e154f3966119c28a18ed9a500904f5e",
+    "fixture2030-influxdb": "influxdb:3-core sha256:f349b303abfc33e5be9ab67f475d544c4ef53ed5b3b68267842aedb112756b82",
+    "fixture2030-iris": "intersystems/iris-community:latest-cd sha256:cd2ebcab02d1ef80ec155def4418399f353d867162688",
+    "cassandra_release": "ReleaseVersion: 5.0.9"
+  },
+  "entorno": {
+    "cpu_logicos": 6,
+    "ram_gb": 15.9,
+    "so": "Windows-10-10.0.19045-SP0",
+    "python": "3.11.3"
+  },
+  "medicion": "latencia = tiempo de respuesta HTTP completo visto por el generador (perf_counter, ms); throughput = requests completadas en el sostenimiento / duración del sostenimiento (req/s); CPU en % de un núcleo (100 = 1 núcleo), media de muestras cada 2 s",
+  "global": {
+    "requests": 32848,
+    "exitosas": 32848,
+    "errores": 0,
+    "tasa_error_pct": 0.0,
+    "errores_por_tipo": {},
+    "throughput_rps": 273.7,
+    "latencia_ms": {
+      "min": 6.14,
+      "media": 73.23,
+      "p50": 53.55,
+      "p90": 136.55,
+      "p95": 171.67,
+      "p99": 250.43,
+      "max": 9235.82
+    }
+  },
+  "por_operacion": {
+    "feed_vivo": {
+      "requests": 24523,
+      "exitosas": 24523,
+      "errores": 0,
+      "tasa_error_pct": 0.0,
+      "errores_por_tipo": {},
+      "throughput_rps": 204.4,
+      "latencia_ms": {
+        "min": 6.14,
+        "media": 70.14,
+        "p50": 49.97,
+        "p90": 132.47,
+        "p95": 166.86,
+        "p99": 246.33,
+        "max": 9235.82
+      }
+    },
+    "feed_historial": {
+      "requests": 5008,
+      "exitosas": 5008,
+      "errores": 0,
+      "tasa_error_pct": 0.0,
+      "errores_por_tipo": {},
+      "throughput_rps": 41.7,
+      "latencia_ms": {
+        "min": 6.3,
+        "media": 84.12,
+        "p50": 65.14,
+        "p90": 149.21,
+        "p95": 182.42,
+        "p99": 262.66,
+        "max": 9008.9
+      }
+    },
+    "publicar": {
+      "requests": 3317,
+      "exitosas": 3317,
+      "errores": 0,
+      "tasa_error_pct": 0.0,
+      "errores_por_tipo": {},
+      "throughput_rps": 27.6,
+      "latencia_ms": {
+        "min": 8.32,
+        "media": 79.69,
+        "p50": 61.92,
+        "p90": 146.73,
+        "p95": 183.86,
+        "p99": 264.68,
+        "max": 8819.98
+      }
+    }
+  },
+  "escrituras": {
+    "enviadas_total": 3841,
+    "201_total": 3840
+  },
+  "recursos_sostenimiento_media": {
+    "so_cpu_pct": 88.7,
+    "generador_cpu_pct": 206.9,
+    "api_cpu_pct": 93.7,
+    "api_mem_mb": 396.3,
+    "cassandra_cpu_pct": 68.7,
+    "redis_cpu_pct": 4.6
+  },
+  "interrumpida": false,
+  "procesos_generador": 3
+}

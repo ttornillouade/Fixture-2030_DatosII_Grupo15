@@ -5,7 +5,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
-from app.adaptadores import cassandra, influx, iris, mongodb, neo4j_grafo, redis_sesiones
+from app.adaptadores import cache_comentarios, cassandra, influx, iris, mongodb, neo4j_grafo, redis_sesiones
 from app.config import config
 from app.errores import ErrorApi, Validacion
 
@@ -78,9 +78,16 @@ def comentarios(partido: str, bucket: datetime, limit: int, cursor: str | None) 
     bucket = _utc(bucket)
     if bucket.minute % 5 or bucket.second or bucket.microsecond:
         raise Validacion("bucket debe ser el inicio de una ventana de 5 minutos (por ejemplo 2030-06-08T20:00:00Z)")
+    # Hito 12: la primera página (la que piden casi todos durante el partido) puede salir de Redis.
+    usar_cache = cursor is None and cache_comentarios.activa()
+    if usar_cache and (pagina := cache_comentarios.leer(partido, bucket.isoformat(), limit)) is not None:
+        return pagina
     items, hay_mas = cassandra.leer_pagina(partido, bucket, limit, _decodificar_cursor(cursor) if cursor else None)
-    return {"partidoCodigo": partido, "bucket": bucket, "items": items, "limit": limit,
-            "nextCursor": _codificar_cursor(items[-1]) if hay_mas and items else None}
+    pagina = {"partidoCodigo": partido, "bucket": bucket, "items": items, "limit": limit,
+              "nextCursor": _codificar_cursor(items[-1]) if hay_mas and items else None}
+    if usar_cache:
+        cache_comentarios.guardar(partido, bucket.isoformat(), limit, pagina)
+    return pagina
 
 
 def crear_comentario(partido: str, usuario: str, texto: str) -> dict:

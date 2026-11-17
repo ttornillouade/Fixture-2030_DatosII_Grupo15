@@ -1,0 +1,6 @@
+# Herramientas del Hito 12 (generador de carga, medición y validación). Separadas de la API.
+httpx==0.28.1
+psutil==7.1.3
+matplotlib==3.10.7
+cassandra-driver==3.30.1
+redis==8.1.0

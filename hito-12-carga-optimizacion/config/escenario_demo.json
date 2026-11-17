@@ -1,0 +1,15 @@
+{
+  "_descripcion": "Tráfico liviano para la demo y el dashboard del Hito 13 (~12 req/s, 30 min). No es una prueba de carga.",
+  "semilla": 13,
+  "procesos_generador": 1,
+  "usuarios_calentamiento": 2,
+  "usuarios_virtuales": 4,
+  "calentamiento_s": 5,
+  "rampa_s": 5,
+  "sostenimiento_s": 1800,
+  "think_time_s": [0.2, 0.45],
+  "timeout_cliente_s": 10,
+  "max_errores_pct": 101,
+  "proporcion": {"feed_vivo": 0.75, "feed_historial": 0.15, "publicar": 0.10},
+  "partidos": {"P901": 0.55, "P902": 0.20, "P903": 0.15, "P904": 0.10}
+}
