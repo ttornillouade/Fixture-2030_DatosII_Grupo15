@@ -4,7 +4,10 @@
 
 Capa de observabilidad de la plataforma con **Prometheus y Grafana** sobre la API integrada (Hito 10) y las
 seis bases (MongoDB, Neo4j, Cassandra, Redis, InfluxDB, IRIS), una prueba de falla controlada con
-evidencia, y el material de la defensa ante la FIFA.
+evidencia y el análisis técnico de las decisiones de arquitectura.
+
+> La presentación, el guion y la demo de la defensa oral no forman parte de esta entrega: el grupo los
+> presenta directamente el día de la defensa.
 
 ## Qué se monitorea
 
@@ -25,10 +28,8 @@ por el ping de la API y por las métricas de sus endpoints. Detalle y motivos en
 | Inventario de componentes y qué se mide de cada uno | [docs/inventario_de_componentes.md](docs/inventario_de_componentes.md) |
 | Configuración de Prometheus, targets, UP/DOWN, consultas PromQL | [docs/metricas_y_consultas.md](docs/metricas_y_consultas.md) |
 | Alertas y umbrales | [docs/alertas_y_umbral.md](docs/alertas_y_umbral.md) |
-| Decisiones de arquitectura (base de la defensa) | [docs/decisiones_de_arquitectura.md](docs/decisiones_de_arquitectura.md) |
+| Decisiones de arquitectura: modelos, distribución, consistencia, fallas y mejora transversal | [docs/decisiones_de_arquitectura.md](docs/decisiones_de_arquitectura.md) |
 | Limitaciones y evidencia (prueba de falla) | [docs/limitaciones_y_evidencia.md](docs/limitaciones_y_evidencia.md) |
-| Defensa: síntesis | [docs/defensa_final.md](docs/defensa_final.md) |
-| Defensa: guion de 20 minutos, demo y presentación | [defensa/](defensa/) |
 | Dashboard | [grafana/README.md](grafana/README.md) |
 
 ## Estructura
@@ -46,8 +47,7 @@ hito-13-monitoreo/
 │   ├── ejecutar_prueba_controlada.py   falla controlada con evidencia de Prometheus y Grafana
 │   └── limpiar_entorno.sh    baja el monitoreo (no toca las bases)
 ├── docs/                     análisis
-├── evidencia/                targets, prueba de falla, capturas del dashboard
-└── defensa/                  guion, demo y presentación
+└── evidencia/                targets, prueba de falla, capturas del dashboard
 ```
 
 ## Requisitos
@@ -83,7 +83,12 @@ Accesos (solo en `127.0.0.1`):
 | Prometheus, alertas | http://localhost:9090/alerts |
 | Métricas de la API | http://localhost:8000/metrics |
 
-Para ver tráfico en los paneles, ver `defensa/demo.md` (generador liviano del Hito 12).
+Para ver tráfico en los paneles, con la API corriendo (generador liviano del Hito 12, ~12 req/s durante 30 min;
+Ctrl+C para cortar):
+
+```bash
+cd hito-12-carga-optimizacion && .venv/bin/python scripts/ejecutar_carga.py --etiqueta demo --escenario config/escenario_demo.json
+```
 
 ## Verificación y prueba de falla
 

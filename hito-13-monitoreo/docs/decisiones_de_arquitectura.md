@@ -1,6 +1,6 @@
 # Decisiones de arquitectura: por qué esta combinación de bases (RF14, RF15, 6.4)
 
-Este documento es la base técnica de la defensa. Para cada base: qué guarda, qué acceso motivó la
+Análisis técnico de las decisiones de arquitectura (RF14, RF15, 6.4). Para cada base: qué guarda, qué acceso motivó la
 elección, qué estructura se implementó, cómo escala, qué consistencia necesita, qué pasa si se cae, qué
 costo introduce y **qué evidencia del repositorio lo respalda**. Se distingue lo implementado y medido
 (laboratorio, un nodo por base) de lo diseñado para producción (no medido).
